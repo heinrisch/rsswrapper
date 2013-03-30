@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 )
@@ -73,20 +72,19 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 func getFeed(out chan<- []ItemObject, feed string) {
 	resp, err := http.Get(feed)
 
-	handleErr(err)
+	if err != nil {
+		items := make([]ItemObject, 1)
+		items[0].Title = err.Error()
+		out <- items
+		return
+	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, _ := ioutil.ReadAll(resp.Body)
 
 	rss := new(Rss)
 	xml.Unmarshal(body, rss)
 
 	out <- rss.Channel.Items
 
-}
-
-func handleErr(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
 }
