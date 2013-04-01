@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"regexp"
@@ -146,7 +147,21 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
-	resp, err := http.Get(feed)
+	c := http.Client{
+		Transport: &http.Transport{
+			Dial: func(netw, addr string) (net.Conn, error) {
+				deadline := time.Now().Add(3 * time.Second)
+				c, err := net.DialTimeout(netw, addr, time.Second*3)
+				if err != nil {
+					return nil, err
+				}
+				c.SetDeadline(deadline)
+				return c, nil
+			},
+		},
+	}
+
+	resp, err := c.Get(feed)
 
 	if err != nil {
 		items := make([]ItemObject, 1)
