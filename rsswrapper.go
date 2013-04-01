@@ -150,8 +150,8 @@ func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
 	c := http.Client{
 		Transport: &http.Transport{
 			Dial: func(netw, addr string) (net.Conn, error) {
-				deadline := time.Now().Add(3 * time.Second)
-				c, err := net.DialTimeout(netw, addr, time.Second*3)
+				deadline := time.Now().Add(5 * time.Second)
+				c, err := net.DialTimeout(netw, addr, time.Second*5)
 				if err != nil {
 					return nil, err
 				}
