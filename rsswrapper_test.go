@@ -19,3 +19,12 @@ func TestAftonbladetParseEmpty(t *testing.T) {
 		t.Errorf("\nTestAftonbladetParse\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, x, y, firstOut, secondOut)
 	}
 }
+
+func TestRedditParse(t *testing.T) {
+	const in = "submitted by <a href=\"http://www.reddit.com/user/hexag1\"> hexag1 </a> <br> <a href=\"http://i.imgur.com/toxRCrd.gif\">[link]</a> <a href=\"http://www.reddit.com/r/gifs/comments/1be2d3/forget_the_before_and_after_of_mt_st_helens_heres/\">[190 comments]</a>"
+	const firstOut = in
+	const secondOut = "http://i.imgur.com/toxRCrd.gif"
+	if x, y := RedditParse(in); x != firstOut || y != secondOut {
+		t.Errorf("\nTestRedditParse\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, x, y, firstOut, secondOut)
+	}
+}

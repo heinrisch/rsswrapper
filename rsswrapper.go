@@ -54,6 +54,19 @@ func AftonbladetParse(in string) (string, string) {
 	return "", ""
 }
 
+func RedditParse(in string) (string, string) {
+	var imgRegex = regexp.MustCompile(`https?:\/\/(?:[a-z\-]+\.)+[a-z]{2,6}(?:\/[^\/#?]+)+\.(?:jpe?g|gif|png)`)
+
+	matches := imgRegex.FindStringSubmatch(in)
+	if len(matches) > 0 {
+		return in, strings.Trim(matches[0], " ")
+	} else {
+		return in, ""
+	}
+
+	return "", ""
+}
+
 const timeFormat = "Mon, 2 Jan 2006 15:04:05 -0700"
 const timeFormat2 = "Mon, 2 Jan 2006 15:04:05 MST"
 
@@ -86,7 +99,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	go getFeed(channel, "http://www.aftonbladet.se/rss.xml", AftonbladetParse)
 	go getFeed(channel, "http://www.dn.se/nyheter/m/rss/", nil)
 	go getFeed(channel, "http://www.svd.se/?service=rss", nil)
-	go getFeed(channel, "http://www.reddit.com/r/gifs/.rss", nil)
+	go getFeed(channel, "http://www.reddit.com/r/gifs/.rss", RedditParse)
 
 	var items []ItemObject
 	for i := 0; i < feeds; i++ {
