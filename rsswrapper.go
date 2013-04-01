@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -24,7 +25,6 @@ type ChannelObject struct {
 }
 
 type ItemObject struct {
-	//All         string `xml:",innerxml"`
 	Title       string `xml:"title"`
 	Link        string `xml:"link"`
 	Description string `xml:"description"`
@@ -73,25 +73,39 @@ const timeFormat2 = "Mon, 2 Jan 2006 15:04:05 MST"
 
 var timeDiff = (int64)(60 * 60)
 
-func isInTime(a string) bool {
-	first, err := time.Parse(timeFormat, a)
+func (i ItemObject) UnixTime() int64 {
+	timeString := i.PubDate
+	t, err := time.Parse(timeFormat, timeString)
 	if err != nil {
-		first, err = time.Parse(timeFormat2, a)
+		t, err = time.Parse(timeFormat2, timeString)
 		if err != nil {
-			fmt.Println("%s", err)
+			fmt.Println("%s for\n%s", err, i)
+			return 0
 		}
 	}
-	return (time.Now().Unix() - first.Unix()) < timeDiff
+
+	return t.Unix()
 }
 
 func main() {
-
 	http.HandleFunc("/rss", rssHandler)
 	fmt.Println("listening...")
 	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 	if err != nil {
 		panic(err)
 	}
+}
+
+//Allow sorting
+type SortableItems []ItemObject
+
+func (s SortableItems) Len() int      { return len(s) }
+func (s SortableItems) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+
+type ByTime struct{ SortableItems }
+
+func (s ByTime) Less(i, j int) bool {
+	return s.SortableItems[i].UnixTime() > s.SortableItems[j].UnixTime()
 }
 
 func rssHandler(w http.ResponseWriter, r *http.Request) {
@@ -123,6 +137,8 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	sort.Sort(ByTime{items})
+
 	res, _ := json.Marshal(items)
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -148,7 +164,7 @@ func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
 	//Remove items older than 1 hour
 	var recentItems []ItemObject
 	for _, item := range rss.Channel.Items {
-		if isInTime(item.PubDate) {
+		if time.Now().Unix()-item.UnixTime() < timeDiff {
 			recentItems = append(recentItems, item)
 		}
 	}
