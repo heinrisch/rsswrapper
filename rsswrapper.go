@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -70,6 +71,8 @@ func RedditParse(in string) (string, string) {
 const timeFormat = "Mon, 2 Jan 2006 15:04:05 -0700"
 const timeFormat2 = "Mon, 2 Jan 2006 15:04:05 MST"
 
+var timeDiff = (int64)(60 * 60)
+
 func isInTime(a string) bool {
 	first, err := time.Parse(timeFormat, a)
 	if err != nil {
@@ -78,7 +81,7 @@ func isInTime(a string) bool {
 			fmt.Println("%s", err)
 		}
 	}
-	return (time.Now().Unix() - first.Unix()) < 60*60
+	return (time.Now().Unix() - first.Unix()) < timeDiff
 }
 
 func main() {
@@ -92,6 +95,16 @@ func main() {
 }
 
 func rssHandler(w http.ResponseWriter, r *http.Request) {
+	newTimeDiff := r.URL.Query().Get("time")
+	if newTimeDiff != "" {
+		time, err := strconv.ParseInt(newTimeDiff, 10, 64)
+		if err != nil {
+			fmt.Printf("%s", err)
+			timeDiff = 60 * 60
+		} else {
+			timeDiff = time * 60 * 60
+		}
+	}
 
 	channel := make(chan []ItemObject)
 
