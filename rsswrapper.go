@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
+	"strings"
 )
 
 type Rss struct {
@@ -29,9 +31,30 @@ type ItemObject struct {
 	Image       string `xml:"image"`
 	Author      string `xml:"author"`
 	Category    string `xml:"category"`
+	ParsedImage string
+}
+
+type DescriptionParser func(string) (string, string)
+
+func AftonbladetParse(in string) (string, string) {
+	var srcRegex = regexp.MustCompile(`<img [^>]*src="([^"]+)"[^>]*>`)
+	var tagRegex = regexp.MustCompile(`(<([^>]+)>)`)
+
+	in = strings.Replace(in, "<![CDATA[", "", 1)
+	in = strings.Replace(in, "]]>", "", 1)
+	matches := srcRegex.FindStringSubmatch(in)
+	in = tagRegex.ReplaceAllString(in, "")
+	if len(matches) > 1 {
+		return strings.Replace(in, matches[0], "", 1), strings.Trim(matches[1], " ")
+	} else {
+		return in, ""
+	}
+
+	return "", ""
 }
 
 func main() {
+
 	http.HandleFunc("/rss", rssHandler)
 	fmt.Println("listening...")
 	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
@@ -42,21 +65,16 @@ func main() {
 
 func rssHandler(w http.ResponseWriter, r *http.Request) {
 
-	feeds := [...]string{
-		"http://www.aftonbladet.se/rss.xml",
-		"http://www.dn.se/nyheter/m/rss/",
-		"http://www.svd.se/?service=rss",
-		"http://www.reddit.com/r/gifs/.rss"}
-
 	channel := make(chan []ItemObject)
 
-	for _, feed := range feeds {
-		fmt.Printf("getFeed %s\n", feed)
-		go getFeed(channel, feed)
-	}
+	feeds := 1
+	go getFeed(channel, "http://www.aftonbladet.se/rss.xml", AftonbladetParse)
+	//go getFeed(channel, "http://www.dn.se/nyheter/m/rss/", nil)
+	//go getFeed(channel, "http://www.svd.se/?service=rss", nil)
+	//go getFeed(channel, "http://www.reddit.com/r/gifs/.rss", nil)
 
 	var items []ItemObject
-	for _, _ = range feeds {
+	for i := 0; i < feeds; i++ {
 		rec := <-channel
 		for _, i := range rec {
 			items = append(items, i)
@@ -69,7 +87,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(res))
 }
 
-func getFeed(out chan<- []ItemObject, feed string) {
+func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
 	resp, err := http.Get(feed)
 
 	if err != nil {
@@ -85,6 +103,13 @@ func getFeed(out chan<- []ItemObject, feed string) {
 	rss := new(Rss)
 	xml.Unmarshal(body, rss)
 
-	out <- rss.Channel.Items
+	items := rss.Channel.Items
+	if parser != nil {
+		for i := 0; i < len(items); i++ {
+			items[i].Description, items[i].ParsedImage = parser(items[i].Description)
+		}
+	}
+
+	out <- items
 
 }
