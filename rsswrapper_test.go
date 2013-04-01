@@ -16,6 +16,6 @@ func TestAftonbladetParseEmpty(t *testing.T) {
 	const firstOut = "Peter Kadhammars berättelse om ett Sverige som varit, och ett som blir. • För att läsa: Ladda ner dokumentet som pdf eller zooma in direkt på sidan."
 	const secondOut = ""
 	if x, y := AftonbladetParse(in); x != firstOut || y != secondOut {
-		t.Errorf("\nTestAftonbladetParse\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)", in, x, y, firstOut, secondOut)
+		t.Errorf("\nTestAftonbladetParse\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, x, y, firstOut, secondOut)
 	}
 }

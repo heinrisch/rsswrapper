@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type Rss struct {
@@ -53,6 +54,20 @@ func AftonbladetParse(in string) (string, string) {
 	return "", ""
 }
 
+const timeFormat = "Mon, 2 Jan 2006 15:04:05 -0700"
+const timeFormat2 = "Mon, 2 Jan 2006 15:04:05 MST"
+
+func isInTime(a string) bool {
+	first, err := time.Parse(timeFormat, a)
+	if err != nil {
+		first, err = time.Parse(timeFormat2, a)
+		if err != nil {
+			fmt.Println("%s", err)
+		}
+	}
+	return (time.Now().Unix() - first.Unix()) < 60*60
+}
+
 func main() {
 
 	http.HandleFunc("/rss", rssHandler)
@@ -67,11 +82,11 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	channel := make(chan []ItemObject)
 
-	feeds := 1
+	feeds := 4
 	go getFeed(channel, "http://www.aftonbladet.se/rss.xml", AftonbladetParse)
-	//go getFeed(channel, "http://www.dn.se/nyheter/m/rss/", nil)
-	//go getFeed(channel, "http://www.svd.se/?service=rss", nil)
-	//go getFeed(channel, "http://www.reddit.com/r/gifs/.rss", nil)
+	go getFeed(channel, "http://www.dn.se/nyheter/m/rss/", nil)
+	go getFeed(channel, "http://www.svd.se/?service=rss", nil)
+	go getFeed(channel, "http://www.reddit.com/r/gifs/.rss", nil)
 
 	var items []ItemObject
 	for i := 0; i < feeds; i++ {
@@ -103,7 +118,16 @@ func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
 	rss := new(Rss)
 	xml.Unmarshal(body, rss)
 
-	items := rss.Channel.Items
+	//Remove items older than 1 hour
+	var recentItems []ItemObject
+	for _, item := range rss.Channel.Items {
+		if isInTime(item.PubDate) {
+			recentItems = append(recentItems, item)
+		}
+	}
+
+	//Parse out description and image
+	items := recentItems
 	if parser != nil {
 		for i := 0; i < len(items); i++ {
 			items[i].Description, items[i].ParsedImage = parser(items[i].Description)
