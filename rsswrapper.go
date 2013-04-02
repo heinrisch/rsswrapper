@@ -135,7 +135,9 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < feeds; i++ {
 		rec := <-channel
 		for _, i := range rec {
-			items = append(items, i)
+			if !strings.Contains(strings.ToUpper(i.Description), "NSFW") && !strings.Contains(strings.ToUpper(i.Title), "NSFW") {
+				items = append(items, i)
+			}
 		}
 	}
 
