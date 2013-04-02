@@ -129,6 +129,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	go getFeed(channel, "http://www.svd.se/?service=rss", nil)
 	go getFeed(channel, "http://www.reddit.com/r/gifs/.rss", RedditParse)
 	go getFeed(channel, "http://rss.cnn.com/rss/edition.rss", nil)
+	go getFeed(channel, "http://www.reddit.com/r/pics/.rss", RedditParse)
 
 	var items []ItemObject
 	for i := 0; i < feeds; i++ {
