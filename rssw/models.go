@@ -66,5 +66,6 @@ type HeadObject struct {
 type MetaObject struct {
 	All      string `xml:",innerxml"`
 	Property string `xml:"property,attr"`
+	Name     string `xml:"name,attr"`
 	Content  string `xml:"content,attr"`
 }

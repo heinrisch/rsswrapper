@@ -31,7 +31,7 @@ func RedditParse(i *ItemObject) {
 	}
 }
 
-func SVDParse(i *ItemObject) {
+func MetaParse(i *ItemObject) {
 	resp, err := httpGet(2, i.Link)
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -45,8 +45,8 @@ func SVDParse(i *ItemObject) {
 	xml.Unmarshal([]byte(body), html)
 
 	for _, meta := range html.Head.Meta {
-		if meta.Property == "og:image" {
-			if !strings.Contains(meta.Content, "template") {
+		if meta.Property == "og:image" || meta.Name == "og:image" {
+			if !strings.Contains(meta.Content, "template") && strings.Contains(meta.Content, "dnse-logo") {
 				i.ParsedImage = meta.Content
 			}
 		}

@@ -35,13 +35,24 @@ func TestRedditParse(t *testing.T) {
 }
 
 //This is the worst slowest test ever...
-func TestSVDParse(t *testing.T) {
+func TestMetaParse(t *testing.T) {
 	const in = "http://www.svd.se/nyheter/inrikes/tolkorganisationer-pressar-reinfeldt_8051094.svd" //hopefully this article will be alive for a while...
 	const firstOut = ""
 	const secondOut = "http://gfx.svd-cdn.se/multimedia/dynamic/01010/brp-Afghanistan-to_1010324c.jpg"
 	i := ItemObject{}
 	i.Link = in
-	if SVDParse(&i); i.Description != firstOut || i.ParsedImage != secondOut {
-		t.Errorf("\nTestRedditParse\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, i.Description, i.ParsedImage, firstOut, secondOut)
+	if MetaParse(&i); i.Description != firstOut || i.ParsedImage != secondOut {
+		t.Errorf("\nTestMetaParse\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, i.Description, i.ParsedImage, firstOut, secondOut)
+	}
+}
+
+func TestMetaParse2(t *testing.T) {
+	const in = "http://www.dn.se/nyheter/varlden/usa-bygger-upp-raketforsvar-pa-guam" //hopefully this article will be alive for a while...
+	const firstOut = ""
+	const secondOut = "http://www.dn.se/Images/2013/04/03/nordkoreaGuam683.jpg"
+	i := ItemObject{}
+	i.Link = in
+	if MetaParse(&i); i.Description != firstOut || i.ParsedImage != secondOut {
+		t.Errorf("\nTestMetaParse2\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, i.Description, i.ParsedImage, firstOut, secondOut)
 	}
 }

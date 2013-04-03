@@ -38,8 +38,8 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	feeds := 5
 	go getFeed(channel, "http://www.aftonbladet.se/rss.xml", AftonbladetParse)
-	go getFeed(channel, "http://www.dn.se/nyheter/m/rss/", nil)
-	go getFeed(channel, "http://www.svd.se/?service=rss", SVDParse)
+	go getFeed(channel, "http://www.dn.se/nyheter/m/rss/", MetaParse)
+	go getFeed(channel, "http://www.svd.se/?service=rss", MetaParse)
 	go getFeed(channel, "http://www.reddit.com/r/gifs/.rss", RedditParse)
 	go getFeed(channel, "http://rss.cnn.com/rss/edition.rss", nil)
 
