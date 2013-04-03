@@ -1,4 +1,4 @@
-package main
+package rssw
 
 import "testing"
 
@@ -30,6 +30,18 @@ func TestRedditParse(t *testing.T) {
 	i := ItemObject{}
 	i.Description = in
 	if RedditParse(&i); i.Description != firstOut || i.ParsedImage != secondOut {
+		t.Errorf("\nTestRedditParse\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, i.Description, i.ParsedImage, firstOut, secondOut)
+	}
+}
+
+//This is the worst slowest test ever...
+func TestSVDParse(t *testing.T) {
+	const in = "http://www.svd.se/nyheter/inrikes/tolkorganisationer-pressar-reinfeldt_8051094.svd" //hopefully this article will be alive for a while...
+	const firstOut = ""
+	const secondOut = "http://gfx.svd-cdn.se/multimedia/dynamic/01010/brp-Afghanistan-to_1010324c.jpg"
+	i := ItemObject{}
+	i.Link = in
+	if SVDParse(&i); i.Description != firstOut || i.ParsedImage != secondOut {
 		t.Errorf("\nTestRedditParse\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, i.Description, i.ParsedImage, firstOut, secondOut)
 	}
 }
