@@ -21,8 +21,10 @@ type Rss struct {
 }
 
 type ChannelObject struct {
-	All   string       `xml:",innerxml"`
-	Items []ItemObject `xml:"item"`
+	Title       string       `xml:"title"`
+	Link        string       `xml:"link"`
+	Description string       `xml:"description"`
+	Items       []ItemObject `xml:"item"`
 }
 
 type ItemObject struct {
