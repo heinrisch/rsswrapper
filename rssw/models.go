@@ -31,6 +31,7 @@ type ItemObject struct {
 	Author      string `xml:"author"`
 	Category    string `xml:"category"`
 	ParsedImage string
+	Source      string
 }
 
 const timeFormat = "Mon, 2 Jan 2006 15:04:05 -0700"
