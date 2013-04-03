@@ -37,36 +37,29 @@ type ItemObject struct {
 	ParsedImage string
 }
 
-type DescriptionParser func(string) (string, string)
+type DescriptionParser func(i *ItemObject)
 
-func AftonbladetParse(in string) (string, string) {
+func AftonbladetParse(i *ItemObject) {
 	var srcRegex = regexp.MustCompile(`<img [^>]*src="([^"]+)"[^>]*>`)
 	var tagRegex = regexp.MustCompile(`(<([^>]+)>)`)
 
-	in = strings.Replace(in, "<![CDATA[", "", 1)
-	in = strings.Replace(in, "]]>", "", 1)
-	matches := srcRegex.FindStringSubmatch(in)
-	in = tagRegex.ReplaceAllString(in, "")
+	i.Description = strings.Replace(i.Description, "<![CDATA[", "", 1)
+	i.Description = strings.Replace(i.Description, "]]>", "", 1)
+	matches := srcRegex.FindStringSubmatch(i.Description)
+	i.Description = tagRegex.ReplaceAllString(i.Description, "")
 	if len(matches) > 1 {
-		return strings.Replace(in, matches[0], "", 1), strings.Trim(matches[1], " ")
-	} else {
-		return in, ""
+		i.Description = strings.Replace(i.Description, matches[0], "", 1)
+		i.ParsedImage = strings.Trim(matches[1], " ")
 	}
-
-	return "", ""
 }
 
-func RedditParse(in string) (string, string) {
+func RedditParse(i *ItemObject) {
 	var imgRegex = regexp.MustCompile(`https?:\/\/(?:[a-z\-]+\.)+[a-z]{2,6}(?:\/[^\/#?]+)+\.(?:jpe?g|gif|png)`)
 
-	matches := imgRegex.FindStringSubmatch(in)
+	matches := imgRegex.FindStringSubmatch(i.Description)
 	if len(matches) > 0 {
-		return in, strings.Trim(matches[0], " ")
-	} else {
-		return in, ""
+		i.ParsedImage = strings.Trim(matches[0], " ")
 	}
-
-	return "", ""
 }
 
 const timeFormat = "Mon, 2 Jan 2006 15:04:05 -0700"
@@ -190,7 +183,7 @@ func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
 	items := recentItems
 	if parser != nil {
 		for i := 0; i < len(items); i++ {
-			items[i].Description, items[i].ParsedImage = parser(items[i].Description)
+			parser(&items[i])
 		}
 	}
 
