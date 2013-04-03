@@ -46,7 +46,7 @@ func MetaParse(i *ItemObject) {
 
 	for _, meta := range html.Head.Meta {
 		if meta.Property == "og:image" || meta.Name == "og:image" {
-			if !strings.Contains(meta.Content, "template") && strings.Contains(meta.Content, "dnse-logo") {
+			if !strings.Contains(meta.Content, "template") && !strings.Contains(meta.Content, "dnse-logo") {
 				i.ParsedImage = meta.Content
 			}
 		}
