@@ -32,7 +32,7 @@ func RedditParse(i *ItemObject) {
 }
 
 func SVDParse(i *ItemObject) {
-	resp, err := httpGet(5, i.Link)
+	resp, err := httpGet(2, i.Link)
 	if err != nil {
 		fmt.Printf("%s", err)
 		return
@@ -46,7 +46,9 @@ func SVDParse(i *ItemObject) {
 
 	for _, meta := range html.Head.Meta {
 		if meta.Property == "og:image" {
-			i.ParsedImage = meta.Content
+			if !strings.Contains(meta.Content, "template") {
+				i.ParsedImage = meta.Content
+			}
 		}
 
 	}
