@@ -82,6 +82,7 @@ func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
 	for _, item := range rss.Channel.Items {
 		if time.Now().Unix()-item.UnixTime() < timeDiff {
 			item.Source = rss.Channel.Link
+			item.time = item.UnixTime()
 			recentItems = append(recentItems, item)
 		}
 	}
