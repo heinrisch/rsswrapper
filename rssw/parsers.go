@@ -19,8 +19,8 @@ func AftonbladetParse(out chan<- int, i *ItemObject) {
 }
 
 func YahooParse(out chan<- int, i *ItemObject) {
-
 	removeFirstImages(i)
+	removeAllTags(i)
 
 	out <- 0
 }
@@ -50,6 +50,15 @@ func RedditParse(out chan<- int, i *ItemObject) {
 		i.ParsedImage = strings.Trim(matches[0], " ")
 	}
 
+	out <- 0
+}
+
+func ReutersParse(out chan<- int, i *ItemObject) {
+	var tagRegex = regexp.MustCompile(`<div class=\"feedflare\">([^>]+)</div>`)
+	i.Description = tagRegex.ReplaceAllString(i.Description, " ")
+	removeAllTags(i)
+
+	i.Description = strings.Trim(i.Description, "\n ")
 	out <- 0
 }
 

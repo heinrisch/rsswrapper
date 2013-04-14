@@ -15,6 +15,22 @@ func TestAftonbladetParseFull(t *testing.T) {
 	}
 }
 
+func TestReturesParse(t *testing.T) {
+	const in = "<div class=\"description\">\n" +
+		"  CARACAS (Reuters) - Venezuelans went to the polls on Sunday to vote whether to honor Hugo Chavez's dying wish for a longtime loyalist to continue his self-proclaimed socialist revolution or hand power to a young challenger vowing business-friendly changes.<img width=\"1\" height=\"1\" src=\"http://reuters.us.feedsportal.com/c/35217/f/654200/s/2aafbd78/mf.gif\" border=\"0\"><br><br><a href=\"http://da.feedsportal.com/r/163287437350/u/49/f/654200/c/35217/s/2aafbd78/a2.htm\"><img src=\"http://da.feedsportal.com/r/163287437350/u/49/f/654200/c/35217/s/2aafbd78/a2.img\" border=\"0\"></a><img width=\"1\" height=\"1\" src=\"http://pi.feedsportal.com/r/163287437350/u/49/f/654200/c/35217/s/2aafbd78/a2t.img\" border=\"0\"><div class=\"feedflare\">\n" +
+		"<a href=\"http://feeds.reuters.com/~ff/reuters/topNews?a=fSgtwfJ9rv0:DzNt6rV3-vw:yIl2AUoC8zA\"><img src=\"http://feeds.feedburner.com/~ff/reuters/topNews?d=yIl2AUoC8zA\" border=\"0\"></a> <a href=\"http://feeds.reuters.com/~ff/reuters/topNews?a=fSgtwfJ9rv0:DzNt6rV3-vw:V_sGLiPBpWU\"><img src=\"http://feeds.feedburner.com/~ff/reuters/topNews?i=fSgtwfJ9rv0:DzNt6rV3-vw:V_sGLiPBpWU\" border=\"0\"></a> <a href=\"http://feeds.reuters.com/~ff/reuters/topNews?a=fSgtwfJ9rv0:DzNt6rV3-vw:-BTjWOF_DHI\"><img src=\"http://feeds.feedburner.com/~ff/reuters/topNews?i=fSgtwfJ9rv0:DzNt6rV3-vw:-BTjWOF_DHI\" border=\"0\"></a>\n" +
+		"</div><img src=\"http://feeds.feedburner.com/~r/reuters/topNews/~4/fSgtwfJ9rv0\" height=\"1\" width=\"1\">\n" +
+		"</div>"
+	const out = "CARACAS (Reuters) - Venezuelans went to the polls on Sunday to vote whether to honor Hugo Chavez's dying wish for a longtime loyalist to continue his self-proclaimed socialist revolution or hand power to a young challenger vowing business-friendly changes."
+	i := ItemObject{Description: in}
+	channel := make(chan int)
+	go ReutersParse(channel, &i)
+	<-channel
+	if i.Description != out {
+		t.Errorf("\nTestReutersParse\n(%s)\n = \n(%s)\n want \n(%s)", in, i.Description, out)
+	}
+}
+
 func TestAftonbladetParseEmpty(t *testing.T) {
 	const in = "<![CDATA[<p>Peter Kadhammars berättelse om ett Sverige som varit, och ett som blir. • För att läsa: Ladda ner dokumentet som pdf eller zooma in direkt på sidan.</p>]]>"
 	const firstOut = "Peter Kadhammars berättelse om ett Sverige som varit, och ett som blir. • För att läsa: Ladda ner dokumentet som pdf eller zooma in direkt på sidan."

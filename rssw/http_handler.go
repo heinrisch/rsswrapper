@@ -73,7 +73,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 			go getFeed(channel, "http://news.yahoo.com/rss/world", YahooParse)
 			break
 		case "reuters":
-			go getFeed(channel, "http://feeds.reuters.com/reuters/topNews?format=xml", MetaParse)
+			go getFeed(channel, "http://feeds.reuters.com/reuters/topNews?format=xml", ReutersParse)
 			break
 		case "nytimes":
 			go getFeed(channel, "http://rss.nytimes.com/services/xml/rss/nyt/GlobalHome.xml", MetaParse)
