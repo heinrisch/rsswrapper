@@ -9,19 +9,37 @@ import (
 )
 
 func AftonbladetParse(out chan<- int, i *ItemObject) {
-	var srcRegex = regexp.MustCompile(`<img [^>]*src="([^"]+)"[^>]*>`)
-	var tagRegex = regexp.MustCompile(`(<([^>]+)>)`)
-
 	i.Description = strings.Replace(i.Description, "<![CDATA[", "", 1)
 	i.Description = strings.Replace(i.Description, "]]>", "", 1)
-	matches := srcRegex.FindStringSubmatch(i.Description)
+
+	removeFirstImages(i)
+	removeAllTags(i)
+
+	out <- 0
+}
+
+func YahooParse(out chan<- int, i *ItemObject) {
+
+	removeFirstImages(i)
+
+	out <- 0
+}
+
+func removeAllTags(i *ItemObject) {
+	var tagRegex = regexp.MustCompile(`(<([^>]+)>)`)
 	i.Description = tagRegex.ReplaceAllString(i.Description, "")
+}
+
+func removeFirstImages(i *ItemObject) bool {
+	var srcRegex = regexp.MustCompile(`<img [^>]*src="([^"]+)"[^>]*>`)
+	matches := srcRegex.FindStringSubmatch(i.Description)
 	if len(matches) > 1 {
 		i.Description = strings.Replace(i.Description, matches[0], "", 1)
 		i.ParsedImage = strings.Trim(matches[1], " ")
+		return true
 	}
 
-	out <- 0
+	return false
 }
 
 func RedditParse(out chan<- int, i *ItemObject) {
