@@ -34,17 +34,39 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	channel := make(chan []ItemObject)
+	requests := r.URL.Query().Get("requests")
+	if requests == "" {
+		requests = "aftonbladet+dn+svd+reddit+cnn"
+	}
 
-	feeds := 5
-	go getFeed(channel, "http://www.aftonbladet.se/rss.xml", AftonbladetParse)
-	go getFeed(channel, "http://www.dn.se/nyheter/m/rss/", MetaParse)
-	go getFeed(channel, "http://www.svd.se/?service=rss", MetaParse)
-	go getFeed(channel, "http://www.reddit.com/r/gifs/.rss", RedditParse)
-	go getFeed(channel, "http://rss.cnn.com/rss/edition.rss", nil)
+	feeds := strings.Split(requests, "+")
+	numberOfFeeds := len(feeds)
+
+	channel := make(chan []ItemObject)
+	for _, feed := range feeds {
+		switch feed {
+		case "aftonbladet":
+			go getFeed(channel, "http://www.aftonbladet.se/rss.xml", AftonbladetParse)
+			break
+		case "dn":
+			go getFeed(channel, "http://www.dn.se/nyheter/m/rss/", MetaParse)
+			break
+		case "svd":
+			go getFeed(channel, "http://www.svd.se/?service=rss", MetaParse)
+			break
+		case "reddit":
+			go getFeed(channel, "http://www.reddit.com/r/gifs/.rss", RedditParse)
+			break
+		case "cnn":
+			go getFeed(channel, "http://rss.cnn.com/rss/edition.rss", MetaParse)
+			break
+		default:
+			numberOfFeeds--
+		}
+	}
 
 	var items []ItemObject
-	for i := 0; i < feeds; i++ {
+	for i := 0; i < numberOfFeeds; i++ {
 		rec := <-channel
 		for _, i := range rec {
 			if !strings.Contains(strings.ToUpper(i.Description), "NSFW") && !strings.Contains(strings.ToUpper(i.Title), "NSFW") {
