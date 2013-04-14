@@ -36,7 +36,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	requests := r.URL.Query().Get("requests")
 	if requests == "" {
-		requests = "aftonbladet dn svd di svt reddit cnn"
+		requests = "aftonbladet dn svd di svt reddit cnn bbc yahoo"
 	}
 
 	feeds := strings.Split(requests, " ")
@@ -65,6 +65,12 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		case "cnn":
 			go getFeed(channel, "http://rss.cnn.com/rss/edition.rss", MetaParse)
+			break
+		case "bbc":
+			go getFeed(channel, "http://feeds.bbci.co.uk/news/rss.xml", MetaParse)
+			break
+		case "yahoo":
+			go getFeed(channel, "http://news.yahoo.com/rss/world", MetaParse)
 			break
 		default:
 			numberOfFeeds--
