@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func AftonbladetParse(i *ItemObject) {
+func AftonbladetParse(out chan<- int, i *ItemObject) {
 	var srcRegex = regexp.MustCompile(`<img [^>]*src="([^"]+)"[^>]*>`)
 	var tagRegex = regexp.MustCompile(`(<([^>]+)>)`)
 
@@ -20,21 +20,26 @@ func AftonbladetParse(i *ItemObject) {
 		i.Description = strings.Replace(i.Description, matches[0], "", 1)
 		i.ParsedImage = strings.Trim(matches[1], " ")
 	}
+
+	out <- 0
 }
 
-func RedditParse(i *ItemObject) {
+func RedditParse(out chan<- int, i *ItemObject) {
 	var imgRegex = regexp.MustCompile(`https?:\/\/(?:[a-z\-]+\.)+[a-z]{2,6}(?:\/[^\/#?]+)+\.(?:jpe?g|gif|png)`)
 
 	matches := imgRegex.FindStringSubmatch(i.Description)
 	if len(matches) > 0 {
 		i.ParsedImage = strings.Trim(matches[0], " ")
 	}
+
+	out <- 0
 }
 
-func MetaParse(i *ItemObject) {
+func MetaParse(out chan<- int, i *ItemObject) {
 	resp, err := httpGet(2, i.Link)
 	if err != nil {
 		fmt.Printf("%s", err)
+		out <- 0
 		return
 	}
 
@@ -50,6 +55,7 @@ func MetaParse(i *ItemObject) {
 				i.ParsedImage = meta.Content
 			}
 		}
-
 	}
+
+	out <- 0
 }

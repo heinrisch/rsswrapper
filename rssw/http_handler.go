@@ -90,8 +90,16 @@ func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
 	//Parse out description and image
 	items := recentItems
 	if parser != nil {
+		parseChannel := make(chan int)
+		toParse := 0
 		for i := 0; i < len(items); i++ {
-			parser(&items[i])
+			toParse += 1
+			go parser(parseChannel, &items[i])
+		}
+
+		for toParse > 0 {
+			<-parseChannel
+			toParse--
 		}
 	}
 

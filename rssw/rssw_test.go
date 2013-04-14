@@ -7,7 +7,10 @@ func TestAftonbladetParseFull(t *testing.T) {
 	const firstOut = "Se när han grundluras av polarna"
 	const secondOut = "http://gfx.aftonbladet-cdn.se/image/16518937/250/widescreen/49db9ec601a95/Ger+sig+ut+p%C3%A5+ov%C3%A4ntat+djupt+vatten"
 	i := ItemObject{Description: in}
-	if AftonbladetParse(&i); i.Description != firstOut || i.ParsedImage != secondOut {
+	channel := make(chan int)
+	go AftonbladetParse(channel, &i)
+	<-channel
+	if i.Description != firstOut || i.ParsedImage != secondOut {
 		t.Errorf("\nTestAftonbladetParse\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)", in, i.Description, i.ParsedImage, firstOut, secondOut)
 	}
 }
@@ -18,7 +21,10 @@ func TestAftonbladetParseEmpty(t *testing.T) {
 	const secondOut = ""
 	i := ItemObject{}
 	i.Description = in
-	if AftonbladetParse(&i); i.Description != firstOut || i.ParsedImage != secondOut {
+	channel := make(chan int)
+	go AftonbladetParse(channel, &i)
+	<-channel
+	if i.Description != firstOut || i.ParsedImage != secondOut {
 		t.Errorf("\nTestAftonbladetParse\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, i.Description, i.ParsedImage, firstOut, secondOut)
 	}
 }
@@ -29,7 +35,10 @@ func TestRedditParse(t *testing.T) {
 	const secondOut = "http://i.imgur.com/toxRCrd.gif"
 	i := ItemObject{}
 	i.Description = in
-	if RedditParse(&i); i.Description != firstOut || i.ParsedImage != secondOut {
+	channel := make(chan int)
+	go RedditParse(channel, &i)
+	<-channel
+	if i.Description != firstOut || i.ParsedImage != secondOut {
 		t.Errorf("\nTestRedditParse\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, i.Description, i.ParsedImage, firstOut, secondOut)
 	}
 }
@@ -41,7 +50,10 @@ func TestMetaParse(t *testing.T) {
 	const secondOut = "http://gfx.svd-cdn.se/multimedia/dynamic/01010/brp-Afghanistan-to_1010324c.jpg"
 	i := ItemObject{}
 	i.Link = in
-	if MetaParse(&i); i.Description != firstOut || i.ParsedImage != secondOut {
+	channel := make(chan int)
+	go MetaParse(channel, &i)
+	<-channel
+	if i.Description != firstOut || i.ParsedImage != secondOut {
 		t.Errorf("\nTestMetaParse\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, i.Description, i.ParsedImage, firstOut, secondOut)
 	}
 }
@@ -52,7 +64,10 @@ func TestMetaParse2(t *testing.T) {
 	const secondOut = "http://www.dn.se/Images/2013/04/03/nordkoreaGuam683.jpg"
 	i := ItemObject{}
 	i.Link = in
-	if MetaParse(&i); i.Description != firstOut || i.ParsedImage != secondOut {
+	channel := make(chan int)
+	go MetaParse(channel, &i)
+	<-channel
+	if i.Description != firstOut || i.ParsedImage != secondOut {
 		t.Errorf("\nTestMetaParse2\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, i.Description, i.ParsedImage, firstOut, secondOut)
 	}
 }

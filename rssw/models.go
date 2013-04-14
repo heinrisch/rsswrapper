@@ -6,7 +6,7 @@ import (
 )
 
 //Types
-type DescriptionParser func(i *ItemObject)
+type DescriptionParser func(out chan<- int, i *ItemObject)
 
 //Models for RSS
 type Rss struct {
