@@ -83,10 +83,23 @@ func MetaParse(out chan<- int, i *ItemObject) {
 
 	for _, meta := range html.Head.Meta {
 		if meta.Property == "og:image" || meta.Name == "og:image" {
-			if !strings.Contains(meta.Content, "template") && !strings.Contains(meta.Content, "dnse-logo") && !strings.Contains(meta.Content, "default.") {
-				i.ParsedImage = meta.Content
-			}
+			i.ParsedImage = meta.Content
 		}
+	}
+
+	if i.ParsedImage == "" {
+		var imgRegex = regexp.MustCompile(`<[^>]*og:image[^>]*content=\"([^>]*)\"[^>]*>`)
+		matches := imgRegex.FindStringSubmatch(bodyStr)
+		if len(matches) > 1 {
+			i.ParsedImage = matches[1]
+		}
+	}
+
+	if strings.Contains(i.ParsedImage, "template") ||
+		strings.Contains(i.ParsedImage, "dnse-logo") ||
+		strings.Contains(i.ParsedImage, "default.") ||
+		strings.Contains(i.ParsedImage, "t_logo") {
+		i.ParsedImage = ""
 	}
 
 	out <- 0
