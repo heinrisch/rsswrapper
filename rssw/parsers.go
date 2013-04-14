@@ -46,12 +46,17 @@ func MetaParse(out chan<- int, i *ItemObject) {
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 
+	bodyStr := string(body)
+
+	//Fix for svt
+	bodyStr = strings.Replace(bodyStr, "\"UTF-8\">", "\"UTF-8\"/>", 1)
+
 	html := new(Html)
-	xml.Unmarshal([]byte(body), html)
+	xml.Unmarshal([]byte(bodyStr), html)
 
 	for _, meta := range html.Head.Meta {
 		if meta.Property == "og:image" || meta.Name == "og:image" {
-			if !strings.Contains(meta.Content, "template") && !strings.Contains(meta.Content, "dnse-logo") {
+			if !strings.Contains(meta.Content, "template") && !strings.Contains(meta.Content, "dnse-logo") && !strings.Contains(meta.Content, "default.") {
 				i.ParsedImage = meta.Content
 			}
 		}

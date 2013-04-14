@@ -36,7 +36,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	requests := r.URL.Query().Get("requests")
 	if requests == "" {
-		requests = "aftonbladet dn svd reddit cnn"
+		requests = "aftonbladet dn svd di svt reddit cnn"
 	}
 
 	feeds := strings.Split(requests, " ")
@@ -53,6 +53,12 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		case "svd":
 			go getFeed(channel, "http://www.svd.se/?service=rss", MetaParse)
+			break
+		case "di":
+			go getFeed(channel, "http://www.di.se/rss", MetaParse)
+			break
+		case "svt":
+			go getFeed(channel, "http://www.svt.se/nyheter/regionalt/mittnytt/rss.xml", MetaParse)
 			break
 		case "reddit":
 			go getFeed(channel, "http://www.reddit.com/r/gifs/.rss", RedditParse)
