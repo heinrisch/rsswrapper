@@ -36,7 +36,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	requests := r.URL.Query().Get("requests")
 	if requests == "" {
-		requests = "aftonbladet dn svd di svt reddit cnn bbc yahoo"
+		requests = "aftonbladet dn svd di svt reddit cnn bbc yahoo reuters"
 	}
 
 	feeds := strings.Split(requests, " ")
