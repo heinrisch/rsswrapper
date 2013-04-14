@@ -36,10 +36,10 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	requests := r.URL.Query().Get("requests")
 	if requests == "" {
-		requests = "aftonbladet+dn+svd+reddit+cnn"
+		requests = "aftonbladet dn svd reddit cnn"
 	}
 
-	feeds := strings.Split(requests, "+")
+	feeds := strings.Split(requests, " ")
 	numberOfFeeds := len(feeds)
 
 	channel := make(chan []ItemObject)
