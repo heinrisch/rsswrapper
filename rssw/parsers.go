@@ -59,7 +59,7 @@ func ReutersParse(out chan<- int, i *ItemObject) {
 	removeAllTags(i)
 
 	i.Description = strings.Trim(i.Description, "\n ")
-	out <- 0
+	MetaParse(out, i)
 }
 
 func MetaParse(out chan<- int, i *ItemObject) {
@@ -98,7 +98,8 @@ func MetaParse(out chan<- int, i *ItemObject) {
 	if strings.Contains(i.ParsedImage, "template") ||
 		strings.Contains(i.ParsedImage, "dnse-logo") ||
 		strings.Contains(i.ParsedImage, "default.") ||
-		strings.Contains(i.ParsedImage, "t_logo") {
+		strings.Contains(i.ParsedImage, "t_logo") ||
+		strings.Contains(i.ParsedImage, "logo2login") {
 		i.ParsedImage = ""
 	}
 
