@@ -105,7 +105,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
-	resp, err := httpGet(5, feed)
+	resp, err := httpGet(2, feed)
 
 	if err != nil {
 		items := make([]ItemObject, 1)
