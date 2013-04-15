@@ -63,7 +63,7 @@ func ReutersParse(out chan<- int, i *ItemObject) {
 }
 
 func MetaParse(out chan<- int, i *ItemObject) {
-	resp, err := httpGet(1, i.Link)
+	resp, err := httpGet(2, i.Link)
 	if err != nil {
 		fmt.Printf("%s", err)
 		out <- 0
@@ -102,6 +102,8 @@ func MetaParse(out chan<- int, i *ItemObject) {
 		strings.Contains(i.ParsedImage, "logo2login") {
 		i.ParsedImage = ""
 	}
+
+	removeAllTags(i)
 
 	out <- 0
 }
