@@ -6,6 +6,19 @@ import (
 	"time"
 )
 
+const (
+	maxConnections = 10
+)
+
+var semaphores chan int
+
+func initializeSemaphores() {
+	semaphores = make(chan int, maxConnections)
+	for i := 0; i < maxConnections; i++ {
+		semaphores <- 0
+	}
+}
+
 func getTimeoutHttpClient(timeout int) *http.Client {
 	c := http.Client{
 		Transport: &http.Transport{
@@ -22,5 +35,11 @@ func getTimeoutHttpClient(timeout int) *http.Client {
 }
 
 func httpGet(timeout int, link string) (*http.Response, error) {
-	return getTimeoutHttpClient(timeout).Get(link)
+	if semaphores == nil {
+		initializeSemaphores()
+	}
+	<-semaphores
+	resp, err := getTimeoutHttpClient(timeout).Get(link)
+	semaphores <- 0
+	return resp, err
 }
