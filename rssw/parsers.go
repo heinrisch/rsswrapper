@@ -62,6 +62,24 @@ func ReutersParse(out chan<- int, i *ItemObject) {
 	MetaParse(out, i)
 }
 
+func isSimilarButNotEqual(a, b string) bool {
+	if a == b {
+		return false
+	}
+
+	match := float64(0)
+	for i := 0; i < len(b) && i < len(a); i++ {
+		if b[i] == a[i] {
+			match++
+		} else {
+			break
+		}
+	}
+	count := float64(len(b))
+	fmt.Printf("%f/%f=%f\n", match, count, match/count)
+	return float64(match/count) > float64(0.75)
+}
+
 func MetaParse(out chan<- int, i *ItemObject) {
 	resp, err := httpGet(1, i.Link)
 	if err != nil {
@@ -75,9 +93,6 @@ func MetaParse(out chan<- int, i *ItemObject) {
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	bodyStr := string(body)
-
-	//Fix for svt
-	bodyStr = strings.Replace(bodyStr, "\"UTF-8\">", "\"UTF-8\"/>", 1)
 
 	html := new(Html)
 	xml.Unmarshal([]byte(bodyStr), html)
@@ -93,6 +108,17 @@ func MetaParse(out chan<- int, i *ItemObject) {
 		matches := imgRegex.FindStringSubmatch(bodyStr)
 		if len(matches) > 1 {
 			i.ParsedImage = matches[1]
+		}
+	}
+
+	var imgRegex = regexp.MustCompile(`https?:\/\/(?:[a-z\-]+\.)+[a-z]{2,6}(?:\/[^\/#?]+)+\.(?:jpe?g|gif|png)`)
+	matches := imgRegex.FindAllStringSubmatch(bodyStr, -1)
+	for _, arr := range matches {
+		for _, match := range arr {
+			if isSimilarButNotEqual(match, i.ParsedImage) {
+				i.ParsedImage = match
+				fmt.Printf("Winner: %s\n", match)
+			}
 		}
 	}
 

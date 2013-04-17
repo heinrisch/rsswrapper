@@ -25,7 +25,9 @@ func getTimeoutHttpClient(timeout int) *http.Client {
 			Dial: func(netw, addr string) (net.Conn, error) {
 				deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 				c, err := net.DialTimeout(netw, addr, time.Duration(timeout)*time.Second)
-				c.SetDeadline(deadline)
+				if c != nil {
+					c.SetDeadline(deadline)
+				}
 				return c, err
 			},
 		},
