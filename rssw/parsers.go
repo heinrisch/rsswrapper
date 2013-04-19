@@ -152,7 +152,8 @@ func MetaParse(out chan<- int, i *ItemObject) {
 		strings.Contains(i.ParsedImage, "dnse-logo") ||
 		strings.Contains(i.ParsedImage, "default.") ||
 		strings.Contains(i.ParsedImage, "t_logo") ||
-		strings.Contains(i.ParsedImage, "logo2login") {
+		strings.Contains(i.ParsedImage, "logo2login") ||
+		strings.Contains(i.ParsedImage, "nprlogo") {
 		i.ParsedImage = ""
 	}
 
