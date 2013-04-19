@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -111,15 +112,40 @@ func MetaParse(out chan<- int, i *ItemObject) {
 		}
 	}
 
-	var imgRegex = regexp.MustCompile(`https?:\/\/(?:[a-z\-]+\.)+[a-z]{2,6}(?:\/[^\/#?]+)+\.(?:jpe?g|gif|png)`)
+	var imgRegex = regexp.MustCompile(`<img[^>]*src=\"([^>^"]*)\"[^>]*width=\"([0-9]*)\"[^>]*height=\"([0-9]*)\"[^>]*>`)
 	matches := imgRegex.FindAllStringSubmatch(bodyStr, -1)
-	for _, arr := range matches {
-		for _, match := range arr {
-			if isSimilarButNotEqual(match, i.ParsedImage) {
-				i.ParsedImage = match
-				fmt.Printf("Winner: %s\n", match)
-			}
+	minWidth := 150
+	image := ""
+	for _, match := range matches {
+		if len(match) < 3 {
+			continue
 		}
+
+		if strings.Contains(match[1], "ad") {
+			continue
+		}
+
+		w, err := strconv.Atoi(match[2])
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		h, err := strconv.Atoi(match[3])
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		if w > minWidth && h > 100 {
+			minWidth = w
+			image = match[1]
+		}
+
+	}
+	if image != "" {
+		fmt.Printf("Changed from %s to %s\n", i.ParsedImage, image)
+		i.ParsedImage = image
 	}
 
 	if strings.Contains(i.ParsedImage, "template") ||
