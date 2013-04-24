@@ -81,6 +81,9 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 		case "npr":
 			go getFeed(channel, "http://www.npr.org/rss/rss.php?id=1001", MetaParse)
 			break
+		case "redditpics":
+			go getFeed(channel, "http://www.reddit.com/r/pics/.rss", RedditParse)
+			break
 		default:
 			numberOfFeeds--
 		}
