@@ -23,7 +23,7 @@ func YahooParse(out chan<- int, i *ItemObject) {
 	removeFirstImages(i)
 	removeAllTags(i)
 
-	out <- 0
+	MetaParse(out, i)
 }
 
 func removeAllTags(i *ItemObject) {
@@ -82,7 +82,7 @@ func isSimilarButNotEqual(a, b string) bool {
 }
 
 func MetaParse(out chan<- int, i *ItemObject) {
-	resp, err := httpGet(1, i.Link)
+	resp, err := httpGet(2, i.Link)
 	if err != nil {
 		fmt.Printf("Connection error: %s\n", err)
 		removeAllTags(i)
@@ -121,7 +121,7 @@ func MetaParse(out chan<- int, i *ItemObject) {
 			continue
 		}
 
-		if strings.Contains(match[1], "ad") {
+		if strings.Contains(match[1], "ad") || strings.Contains(match[1], "ybang") {
 			continue
 		}
 
