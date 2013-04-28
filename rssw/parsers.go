@@ -133,15 +133,6 @@ func MetaParse(out chan<- int, i *ItemObject) {
 
 	bodyStr := string(body)
 
-	html := new(Html)
-	xml.Unmarshal([]byte(bodyStr), html)
-
-	for _, meta := range html.Head.Meta {
-		if meta.Property == "og:image" || meta.Name == "og:image" {
-			i.ParsedImage = meta.Content
-		}
-	}
-
 	if i.ParsedImage == "" {
 		var imgRegex = regexp.MustCompile(`<[^>]*og:image[^>]*content=\"([^>]*)\"[^>]*>`)
 		matches := imgRegex.FindStringSubmatch(bodyStr)

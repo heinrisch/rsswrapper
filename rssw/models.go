@@ -53,21 +53,3 @@ func (i ItemObject) UnixTime() int64 {
 
 	return t.Unix()
 }
-
-//Models for HMLT
-type Html struct {
-	All  string     `xml:",innerxml"`
-	Head HeadObject `xml:"head"`
-}
-
-type HeadObject struct {
-	All  string       `xml:",innerxml"`
-	Meta []MetaObject `xml:"meta"`
-}
-
-type MetaObject struct {
-	All      string `xml:",innerxml"`
-	Property string `xml:"property,attr"`
-	Name     string `xml:"name,attr"`
-	Content  string `xml:"content,attr"`
-}
