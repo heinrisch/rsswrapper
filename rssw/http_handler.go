@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"sort"
@@ -129,10 +128,11 @@ func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
 	}
 
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
+	d := xml.NewDecoder(resp.Body)
+	d.CharsetReader = CharsetReader
 
 	rss := new(Rss)
-	err = xml.Unmarshal(body, rss)
+	err = d.Decode(rss)
 
 	if err != nil {
 		items := make([]ItemObject, 1)
