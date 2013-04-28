@@ -25,17 +25,19 @@ type ChannelObject struct {
 }
 
 type ItemObject struct {
-	Title       string `xml:"title"`
-	Link        string `xml:"link"`
-	Description string `xml:"description"`
-	PubDate     string `xml:"pubDate"`
-	Guid        string `xml:"guid"`
-	Image       string `xml:"image"`
-	Author      string `xml:"author"`
-	Category    string `xml:"category"`
-	ParsedImage string
-	Source      string
-	time        int64
+	Title         string `xml:"title"`
+	Link          string `xml:"link"`
+	Description   string `xml:"description"`
+	PubDate       string `xml:"pubDate"`
+	Guid          string `xml:"guid"`
+	Image         string `xml:"image"`
+	Author        string `xml:"author"`
+	Category      string `xml:"category"`
+	ParsedImage   string
+	Source        string
+	Time          int64
+	FacebookStats FacebookStatsObject
+	TwitterStats  CountObject
 }
 
 const timeFormat = "Mon, 2 Jan 2006 15:04:05 -0700"
@@ -76,4 +78,20 @@ func Attr(n *goquery.Node) (string, string, int, int) {
 	}
 
 	return src, alt, width, height
+}
+
+type LinkStatResp struct {
+	Object FacebookStatsObject `xml:"link_stat"`
+	All    string              `xml:",innerxml"`
+}
+
+type FacebookStatsObject struct {
+	Shares   int `xml:"share_count"`
+	Likes    int `xml:"like_count"`
+	Comments int `xml:"comment_count"`
+	Total    int `xml:"total_count"`
+}
+
+type CountObject struct {
+	Count int `xml:"count"`
 }

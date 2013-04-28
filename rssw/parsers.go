@@ -1,6 +1,8 @@
 package rssw
 
 import (
+	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"github.com/opesun/goquery"
 	"io/ioutil"
@@ -151,6 +153,42 @@ func MetaParse(out chan<- int, i *ItemObject) {
 	}
 
 	removeAllTags(i)
+
+	out <- 0
+}
+
+func getFacebookStats(out chan<- int, i *ItemObject) {
+	resp, err := httpGet(2, "http://api.facebook.com/restserver.php?method=links.getStats&urls="+i.Link)
+	if err != nil {
+		fmt.Printf("Connection error: %s\n", err)
+		out <- 0
+		return
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	statResp := new(LinkStatResp)
+	xml.Unmarshal(body, statResp)
+
+	i.FacebookStats = statResp.Object
+
+	out <- 0
+}
+
+func getTwitterStats(out chan<- int, i *ItemObject) {
+	resp, err := httpGet(2, "http://urls.api.twitter.com/1/urls/count.json?url="+i.Link)
+	if err != nil {
+		fmt.Printf("Connection error: %s\n", err)
+		out <- 0
+		return
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	count := new(CountObject)
+	json.Unmarshal(body, count)
+
+	i.TwitterStats = *count
 
 	out <- 0
 }

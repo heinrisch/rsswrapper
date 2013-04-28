@@ -90,13 +90,21 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var items []ItemObject
+	statsChannel := make(chan int)
 	for i := 0; i < numberOfFeeds; i++ {
 		rec := <-channel
 		for _, i := range rec {
 			if !strings.Contains(strings.ToUpper(i.Description), "NSFW") && !strings.Contains(strings.ToUpper(i.Title), "NSFW") {
 				items = append(items, i)
+				go getFacebookStats(statsChannel, &items[len(items)-1]) // referecing i does not work since it is copied into array
+				go getTwitterStats(statsChannel, &items[len(items)-1])
 			}
 		}
+	}
+
+	for i := 0; i < len(items); i++ {
+		<-statsChannel
+		<-statsChannel
 	}
 
 	sort.Sort(ByTime{items})
@@ -128,7 +136,7 @@ func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
 	for _, item := range rss.Channel.Items {
 		if time.Now().Unix()-item.UnixTime() < timeDiff {
 			item.Source = rss.Channel.Link
-			item.time = item.UnixTime()
+			item.Time = item.UnixTime()
 			recentItems = append(recentItems, item)
 		}
 	}
