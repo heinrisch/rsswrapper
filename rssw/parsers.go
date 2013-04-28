@@ -81,39 +81,9 @@ func isSimilarButNotEqual(a, b string) bool {
 	return float64(match/count) > float64(0.75)
 }
 
-func MetaParse(out chan<- int, i *ItemObject) {
-	resp, err := httpGet(2, i.Link)
-	if err != nil {
-		fmt.Printf("Connection error: %s\n", err)
-		removeAllTags(i)
-		out <- 0
-		return
-	}
-
-	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	bodyStr := string(body)
-
-	html := new(Html)
-	xml.Unmarshal([]byte(bodyStr), html)
-
-	for _, meta := range html.Head.Meta {
-		if meta.Property == "og:image" || meta.Name == "og:image" {
-			i.ParsedImage = meta.Content
-		}
-	}
-
-	if i.ParsedImage == "" {
-		var imgRegex = regexp.MustCompile(`<[^>]*og:image[^>]*content=\"([^>]*)\"[^>]*>`)
-		matches := imgRegex.FindStringSubmatch(bodyStr)
-		if len(matches) > 1 {
-			i.ParsedImage = matches[1]
-		}
-	}
-
+func getWidestImage(body string, i *ItemObject) {
 	var imgRegex = regexp.MustCompile(`<img[^>]*src=\"([^>^"]*)\"[^>]*width=\"([0-9]*)\"[^>]*height=\"([0-9]*)\"[^>]*>`)
-	matches := imgRegex.FindAllStringSubmatch(bodyStr, -1)
+	matches := imgRegex.FindAllStringSubmatch(body, -1)
 	minWidth := 150
 	image := ""
 	for _, match := range matches {
@@ -147,6 +117,40 @@ func MetaParse(out chan<- int, i *ItemObject) {
 		fmt.Printf("Changed from %s to %s\n", i.ParsedImage, image)
 		i.ParsedImage = image
 	}
+}
+
+func MetaParse(out chan<- int, i *ItemObject) {
+	resp, err := httpGet(2, i.Link)
+	if err != nil {
+		fmt.Printf("Connection error: %s\n", err)
+		removeAllTags(i)
+		out <- 0
+		return
+	}
+
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	bodyStr := string(body)
+
+	html := new(Html)
+	xml.Unmarshal([]byte(bodyStr), html)
+
+	for _, meta := range html.Head.Meta {
+		if meta.Property == "og:image" || meta.Name == "og:image" {
+			i.ParsedImage = meta.Content
+		}
+	}
+
+	if i.ParsedImage == "" {
+		var imgRegex = regexp.MustCompile(`<[^>]*og:image[^>]*content=\"([^>]*)\"[^>]*>`)
+		matches := imgRegex.FindStringSubmatch(bodyStr)
+		if len(matches) > 1 {
+			i.ParsedImage = matches[1]
+		}
+	}
+
+	getWidestImage(bodyStr, i)
 
 	if strings.Contains(i.ParsedImage, "template") ||
 		strings.Contains(i.ParsedImage, "dnse-logo") ||
