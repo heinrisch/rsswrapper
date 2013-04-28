@@ -2,6 +2,9 @@ package rssw
 
 import (
 	"fmt"
+	"github.com/opesun/goquery"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -52,4 +55,25 @@ func (i ItemObject) UnixTime() int64 {
 	}
 
 	return t.Unix()
+}
+
+func Attr(n *goquery.Node) (string, string, int, int) {
+	var src, alt string
+	var height, width int
+	for _, attr := range n.Attr {
+		if attr.Key == "src" {
+			src = attr.Val
+		}
+		if attr.Key == "alt" {
+			alt = attr.Val
+		}
+		if attr.Key == "width" {
+			width, _ = strconv.Atoi(strings.Replace(attr.Val, "px", "", -1))
+		}
+		if attr.Key == "height" {
+			height, _ = strconv.Atoi(strings.Replace(attr.Val, "px", "", -1))
+		}
+	}
+
+	return src, alt, width, height
 }

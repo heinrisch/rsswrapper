@@ -2,6 +2,7 @@ package rssw
 
 import (
 	"fmt"
+	"github.com/opesun/goquery"
 	"io/ioutil"
 	"regexp"
 	"strconv"
@@ -143,7 +144,40 @@ func MetaParse(out chan<- int, i *ItemObject) {
 	bodyStr := string(body)
 
 	getOGImage(bodyStr, i)
-	getWidestImage(bodyStr, i)
+	//getWidestImage(bodyStr, i)
+
+	nodes, err := goquery.Parse(bodyStr)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	nodes = nodes.Find("img")
+
+	maxWidth := 200
+	maxAlt := 100
+	image := ""
+	for _, node := range nodes {
+		src, alt, width, _ := Attr(node)
+		if !strings.HasPrefix(src, "http") {
+			continue
+		}
+
+		if width > maxWidth {
+			image = src
+			maxWidth = width
+		}
+
+		if image == "" && len(alt) > maxAlt && width != 1 {
+			image = src
+			maxAlt = len(alt)
+		}
+	}
+
+	if image != "" {
+		fmt.Printf("Changed from %s to %s\n", i.ParsedImage, image)
+		i.ParsedImage = image
+	}
 
 	if strings.Contains(i.ParsedImage, "template") ||
 		strings.Contains(i.ParsedImage, "dnse-logo") ||
