@@ -5,7 +5,6 @@ import (
 	"github.com/opesun/goquery"
 	"io/ioutil"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -79,44 +78,6 @@ func isSimilarButNotEqual(a, b string) bool {
 	count := float64(len(b))
 	fmt.Printf("%f/%f=%f\n", match, count, match/count)
 	return float64(match/count) > float64(0.75)
-}
-
-func getWidestImage(body string, i *ItemObject) {
-	var imgRegex = regexp.MustCompile(`<img[^>]*src=\"([^>^"]*)\"[^>]*width=\"([0-9]*)\"[^>]*height=\"([0-9]*)\"[^>]*>`)
-	matches := imgRegex.FindAllStringSubmatch(body, -1)
-	minWidth := 150
-	image := ""
-	for _, match := range matches {
-		if len(match) < 3 {
-			continue
-		}
-
-		if strings.Contains(match[1], "ad") || strings.Contains(match[1], "ybang") {
-			continue
-		}
-
-		w, err := strconv.Atoi(match[2])
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-
-		h, err := strconv.Atoi(match[3])
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-
-		if w > minWidth && h > 100 {
-			minWidth = w
-			image = match[1]
-		}
-
-	}
-	if image != "" {
-		fmt.Printf("Changed from %s to %s\n", i.ParsedImage, image)
-		i.ParsedImage = image
-	}
 }
 
 func getOGImage(body string, i *ItemObject) {
