@@ -1,7 +1,6 @@
 package rssw
 
 import (
-	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"regexp"
@@ -119,6 +118,16 @@ func getWidestImage(body string, i *ItemObject) {
 	}
 }
 
+func getOGImage(body string, i *ItemObject) {
+	if i.ParsedImage == "" {
+		var imgRegex = regexp.MustCompile(`<[^>]*og:image[^>]*content=\"([^>]*)\"[^>]*>`)
+		matches := imgRegex.FindStringSubmatch(body)
+		if len(matches) > 1 {
+			i.ParsedImage = matches[1]
+		}
+	}
+}
+
 func MetaParse(out chan<- int, i *ItemObject) {
 	resp, err := httpGet(2, i.Link)
 	if err != nil {
@@ -133,14 +142,7 @@ func MetaParse(out chan<- int, i *ItemObject) {
 
 	bodyStr := string(body)
 
-	if i.ParsedImage == "" {
-		var imgRegex = regexp.MustCompile(`<[^>]*og:image[^>]*content=\"([^>]*)\"[^>]*>`)
-		matches := imgRegex.FindStringSubmatch(bodyStr)
-		if len(matches) > 1 {
-			i.ParsedImage = matches[1]
-		}
-	}
-
+	getOGImage(bodyStr, i)
 	getWidestImage(bodyStr, i)
 
 	if strings.Contains(i.ParsedImage, "template") ||
