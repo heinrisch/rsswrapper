@@ -132,7 +132,14 @@ func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	rss := new(Rss)
-	xml.Unmarshal(body, rss)
+	err = xml.Unmarshal(body, rss)
+
+	if err != nil {
+		items := make([]ItemObject, 1)
+		items[0].Title = err.Error()
+		out <- items
+		return
+	}
 
 	//Remove items older than 1 hour
 	var recentItems []ItemObject
