@@ -149,7 +149,8 @@ func MetaParse(out chan<- int, i *ItemObject) {
 		strings.Contains(i.ParsedImage, "logo2login") ||
 		strings.Contains(i.ParsedImage, "nprlogo") ||
 		strings.Contains(i.ParsedImage, "ybang") ||
-		strings.Contains(i.ParsedImage, "wasp") {
+		strings.Contains(i.ParsedImage, "wasp") ||
+		strings.Contains(i.ParsedImage, "ab66ddd94f78") { //Breaking news image
 		i.ParsedImage = ""
 	}
 
