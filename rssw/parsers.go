@@ -190,6 +190,11 @@ func getTwitterStats(out chan<- int, i *ItemObject) {
 	count := new(CountObject)
 	json.Unmarshal(body, count)
 
+	//Remove unreasonable high number, tiwtter calls has some problems
+	if count.Count > 300000 {
+		count.Count = 0
+	}
+
 	i.TwitterStats = *count
 
 	out <- 0
