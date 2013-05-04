@@ -21,6 +21,10 @@ func Start() {
 	}
 }
 
+func WriteToDatabase() {
+
+}
+
 func rssHandler(w http.ResponseWriter, r *http.Request) {
 	newTimeDiff := r.URL.Query().Get("time")
 	if newTimeDiff != "" {
@@ -37,8 +41,19 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	if requests == "" {
 		requests = "aftonbladet dn svd di svt reddit cnn bbc yahoo reuters nytimes npr expressen"
 	}
-
 	feeds := strings.Split(requests, " ")
+
+	items := getItems(feeds)
+
+	sort.Sort(ByTime{items})
+
+	res, _ := json.Marshal(items)
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	fmt.Fprint(w, string(res))
+}
+
+func getItems(feeds []string) []ItemObject {
 	numberOfFeeds := len(feeds)
 
 	channel := make(chan []ItemObject)
@@ -109,12 +124,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 		<-statsChannel
 	}
 
-	sort.Sort(ByTime{items})
-
-	res, _ := json.Marshal(items)
-
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	fmt.Fprint(w, string(res))
+	return items
 }
 
 func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
