@@ -1,9 +1,11 @@
 package rssw
 
 import (
+	"database/sql"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	_ "github.com/mattn/go-sqlite3"
 	"net/http"
 	"os"
 	"sort"
@@ -11,6 +13,8 @@ import (
 	"strings"
 	"time"
 )
+
+var DEFAULT_FEEDS string = "aftonbladet dn svd di svt reddit cnn bbc yahoo reuters nytimes npr expressen"
 
 func Start() {
 	http.HandleFunc("/rss", rssHandler)
@@ -21,8 +25,53 @@ func Start() {
 	}
 }
 
-func WriteToDatabase() {
+func createDatabaseIfNon(db *sql.DB) {
+	//database not created
+	_, err := db.Query("select * from news")
 
+	if err != nil {
+		fmt.Println("Creating database")
+		_, err = db.Exec("create table news (id integer not null primary key, description unique, source text, time integer, item text)")
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+func WriteToDatabase() {
+	timeDiff = 60 * 60 * 72
+
+	db, err := sql.Open("sqlite3", "./news.db")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	createDatabaseIfNon(db)
+
+	items := getItems(strings.Split("bbc", " "))
+
+	tx, err := db.Begin()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	stmt, err := tx.Prepare("insert into news(description, source, time, item) values(?, ?, ?, ?)")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer stmt.Close()
+	for _, item := range items {
+		jsonBlob, _ := json.Marshal(item)
+		_, err = stmt.Exec(item.Description, item.Source, item.UnixTime(), string(jsonBlob))
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	fmt.Println("Committing")
+	tx.Commit()
 }
 
 func rssHandler(w http.ResponseWriter, r *http.Request) {
@@ -39,8 +88,9 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	requests := r.URL.Query().Get("requests")
 	if requests == "" {
-		requests = "aftonbladet dn svd di svt reddit cnn bbc yahoo reuters nytimes npr expressen"
+		requests = DEFAULT_FEEDS
 	}
+
 	feeds := strings.Split(requests, " ")
 
 	items := getItems(feeds)
@@ -60,46 +110,46 @@ func getItems(feeds []string) []ItemObject {
 	for _, feed := range feeds {
 		switch feed {
 		case "aftonbladet":
-			go getFeed(channel, "http://www.aftonbladet.se/rss.xml", AftonbladetParse)
+			go getFeed(channel, feed, "http://www.aftonbladet.se/rss.xml", AftonbladetParse)
 			break
 		case "dn":
-			go getFeed(channel, "http://www.dn.se/nyheter/m/rss/", MetaParse)
+			go getFeed(channel, feed, "http://www.dn.se/nyheter/m/rss/", MetaParse)
 			break
 		case "svd":
-			go getFeed(channel, "http://www.svd.se/?service=rss", MetaParse)
+			go getFeed(channel, feed, "http://www.svd.se/?service=rss", MetaParse)
 			break
 		case "di":
-			go getFeed(channel, "http://www.di.se/rss", MetaParse)
+			go getFeed(channel, feed, "http://www.di.se/rss", MetaParse)
 			break
 		case "svt":
-			go getFeed(channel, "http://www.svt.se/nyheter/regionalt/mittnytt/rss.xml", MetaParse)
+			go getFeed(channel, feed, "http://www.svt.se/nyheter/regionalt/mittnytt/rss.xml", MetaParse)
 			break
 		case "reddit":
-			go getFeed(channel, "http://www.reddit.com/r/gifs/.rss", RedditParse)
+			go getFeed(channel, feed, "http://www.reddit.com/r/gifs/.rss", RedditParse)
 			break
 		case "cnn":
-			go getFeed(channel, "http://rss.cnn.com/rss/edition.rss", MetaParse)
+			go getFeed(channel, feed, "http://rss.cnn.com/rss/edition.rss", MetaParse)
 			break
 		case "bbc":
-			go getFeed(channel, "http://feeds.bbci.co.uk/news/rss.xml", MetaParse)
+			go getFeed(channel, feed, "http://feeds.bbci.co.uk/news/rss.xml", MetaParse)
 			break
 		case "yahoo":
-			go getFeed(channel, "http://news.yahoo.com/rss/world", YahooParse)
+			go getFeed(channel, feed, "http://news.yahoo.com/rss/world", YahooParse)
 			break
 		case "reuters":
-			go getFeed(channel, "http://feeds.reuters.com/reuters/topNews?format=xml", ReutersParse)
+			go getFeed(channel, feed, "http://feeds.reuters.com/reuters/topNews?format=xml", ReutersParse)
 			break
 		case "nytimes":
-			go getFeed(channel, "http://rss.nytimes.com/services/xml/rss/nyt/GlobalHome.xml", MetaParse)
+			go getFeed(channel, feed, "http://rss.nytimes.com/services/xml/rss/nyt/GlobalHome.xml", MetaParse)
 			break
 		case "npr":
-			go getFeed(channel, "http://www.npr.org/rss/rss.php?id=1001", MetaParse)
+			go getFeed(channel, feed, "http://www.npr.org/rss/rss.php?id=1001", MetaParse)
 			break
 		case "redditpics":
-			go getFeed(channel, "http://www.reddit.com/r/pics/.rss", RedditParse)
+			go getFeed(channel, feed, "http://www.reddit.com/r/pics/.rss", RedditParse)
 			break
 		case "expressen":
-			go getFeed(channel, "http://www.expressen.se/Pages/OutboundFeedsPage.aspx?id=3642159&viewstyle=rss", MetaParse)
+			go getFeed(channel, feed, "http://www.expressen.se/Pages/OutboundFeedsPage.aspx?id=3642159&viewstyle=rss", MetaParse)
 			break
 		default:
 			numberOfFeeds--
@@ -127,7 +177,7 @@ func getItems(feeds []string) []ItemObject {
 	return items
 }
 
-func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
+func getFeed(out chan<- []ItemObject, source, feed string, parser DescriptionParser) {
 	resp, err := httpGet(3, feed)
 
 	if err != nil {
@@ -155,7 +205,7 @@ func getFeed(out chan<- []ItemObject, feed string, parser DescriptionParser) {
 	var recentItems []ItemObject
 	for _, item := range rss.Channel.Items {
 		if time.Now().Unix()-item.UnixTime() < timeDiff {
-			item.Source = rss.Channel.Link
+			item.Source = source
 			item.Time = item.UnixTime()
 			recentItems = append(recentItems, item)
 		}

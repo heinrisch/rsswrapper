@@ -78,7 +78,6 @@ func isSimilarButNotEqual(a, b string) bool {
 		}
 	}
 	count := float64(len(b))
-	fmt.Printf("%f/%f=%f\n", match, count, match/count)
 	return float64(match/count) > float64(0.75)
 }
 
@@ -138,7 +137,6 @@ func MetaParse(out chan<- int, i *ItemObject) {
 	}
 
 	if image != "" {
-		fmt.Printf("Changed from %s to %s\n", i.ParsedImage, image)
 		i.ParsedImage = image
 	}
 
