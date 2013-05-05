@@ -7,7 +7,6 @@ import (
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -30,7 +29,7 @@ func createDatabaseIfNon(db *sql.DB) {
 
 	if err != nil {
 		fmt.Println("Creating database")
-		_, err = db.Exec("create table news (id integer not null primary key, title unique, source text, time integer, item text)")
+		_, err = db.Exec("create table news (id integer not null primary key, title unique, source text, time integer, trend integer, item text)")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -62,7 +61,7 @@ func WriteToDatabase() {
 		return
 	}
 
-	stmt, err := tx.Prepare("insert into news(title, source, time, item) values(?, ?, ?, ?)")
+	stmt, err := tx.Prepare("insert into news(title, source, time, trend, item) values(?, ?, ?, ?, ?)")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -70,7 +69,7 @@ func WriteToDatabase() {
 	defer stmt.Close()
 	for _, item := range items {
 		jsonBlob, _ := json.Marshal(item)
-		_, err = stmt.Exec(item.Title, item.Source, item.UnixTime(), jsonBlob)
+		_, err = stmt.Exec(item.Title, item.Source, item.UnixTime(), item.TwitterStats.Count+item.FacebookStats.Shares, jsonBlob)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -98,9 +97,12 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	feeds := strings.Split(requests, " ")
 
-	items := getItemsFromDatabase(feeds)
-
-	sort.Sort(ByTime{items})
+	var items []ItemObject
+	if r.URL.Query().Get("trending") == "" {
+		items = getItemsFromDatabase(feeds)
+	} else {
+		items = getTrendingItemsFromDatabase(feeds)
+	}
 
 	res, _ := json.Marshal(items)
 
@@ -108,18 +110,8 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(res))
 }
 
-func getItemsFromDatabase(feeds []string) []ItemObject {
+func getItemsFromQuery(query string) []ItemObject {
 	db := getDatabase()
-	query := "select item from news where ("
-	for i, feed := range feeds {
-		query += "source='" + feed + "'"
-		if i != len(feeds)-1 {
-			query += " or "
-		} else {
-			query += ") "
-		}
-	}
-	query += " and time > " + strconv.FormatInt(time.Now().Unix()-timeDiff, 10)
 	rows, err := db.Query(query)
 	if err != nil {
 		fmt.Println(err)
@@ -138,6 +130,39 @@ func getItemsFromDatabase(feeds []string) []ItemObject {
 	rows.Close()
 
 	return items
+}
+
+func getTrendingItemsFromDatabase(feeds []string) []ItemObject {
+	query := "select item from news where ("
+	for i, feed := range feeds {
+		query += "source='" + feed + "'"
+		if i != len(feeds)-1 {
+			query += " or "
+		} else {
+			query += ") "
+		}
+	}
+	query += " and time > " + strconv.FormatInt(time.Now().Unix()-timeDiff, 10)
+	query += " and trend > 5 "
+	query += " order by trend desc"
+
+	return getItemsFromQuery(query)
+}
+
+func getItemsFromDatabase(feeds []string) []ItemObject {
+	query := "select item from news where ("
+	for i, feed := range feeds {
+		query += "source='" + feed + "'"
+		if i != len(feeds)-1 {
+			query += " or "
+		} else {
+			query += ") "
+		}
+	}
+	query += " and time > " + strconv.FormatInt(time.Now().Unix()-timeDiff, 10)
+	query += " order by time desc"
+
+	return getItemsFromQuery(query)
 }
 
 func getItems(feeds []string) []ItemObject {
