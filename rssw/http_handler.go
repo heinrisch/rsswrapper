@@ -7,7 +7,6 @@ import (
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"net/http"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -19,7 +18,7 @@ var DEFAULT_FEEDS string = "aftonbladet dn svd di svt reddit cnn bbc yahoo reute
 func Start() {
 	http.HandleFunc("/rss", rssHandler)
 	fmt.Println("listening...")
-	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	err := http.ListenAndServe(":"+strconv.Itoa(4433), nil)
 	if err != nil {
 		panic(err)
 	}
