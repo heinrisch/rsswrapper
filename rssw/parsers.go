@@ -92,7 +92,7 @@ func getOGImage(body string, i *ItemObject) {
 }
 
 func MetaParse(out chan<- int, i *ItemObject) {
-	resp, err := httpGet(2, i.Link)
+	resp, err := httpGet(10, i.Link)
 	if err != nil {
 		fmt.Printf("Connection error: %s\n", err)
 		removeAllTags(i)
@@ -158,7 +158,7 @@ func MetaParse(out chan<- int, i *ItemObject) {
 }
 
 func getFacebookStats(out chan<- int, i *ItemObject) {
-	resp, err := httpGet(2, "http://api.facebook.com/restserver.php?method=links.getStats&urls="+i.Link)
+	resp, err := httpGet(10, "http://api.facebook.com/restserver.php?method=links.getStats&urls="+i.Link)
 	if err != nil {
 		fmt.Printf("Connection error: %s\n", err)
 		out <- 0
@@ -176,7 +176,7 @@ func getFacebookStats(out chan<- int, i *ItemObject) {
 }
 
 func getTwitterStats(out chan<- int, i *ItemObject) {
-	resp, err := httpGet(2, "http://urls.api.twitter.com/1/urls/count.json?url="+i.Link)
+	resp, err := httpGet(10, "http://urls.api.twitter.com/1/urls/count.json?url="+i.Link)
 	if err != nil {
 		fmt.Printf("Connection error: %s\n", err)
 		out <- 0
