@@ -37,18 +37,24 @@ func createDatabaseIfNon(db *sql.DB) {
 	}
 }
 
-func WriteToDatabase() {
-	timeDiff = 60 * 60 * 72
-
+func getDatabase() (db *sql.DB) {
 	db, err := sql.Open("sqlite3", "./news.db")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
+	return db
+}
+
+func WriteToDatabase() {
+	timeDiff = 60 * 60 * 72
+
+	db := getDatabase()
+
 	createDatabaseIfNon(db)
 
-	items := getItems(strings.Split("bbc", " "))
+	items := getItems(strings.Split(DEFAULT_FEEDS, " "))
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -64,7 +70,7 @@ func WriteToDatabase() {
 	defer stmt.Close()
 	for _, item := range items {
 		jsonBlob, _ := json.Marshal(item)
-		_, err = stmt.Exec(item.Description, item.Source, item.UnixTime(), string(jsonBlob))
+		_, err = stmt.Exec(item.Description, item.Source, item.UnixTime(), jsonBlob)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -92,7 +98,7 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	feeds := strings.Split(requests, " ")
 
-	items := getItems(feeds)
+	items := getItemsFromDatabase(feeds)
 
 	sort.Sort(ByTime{items})
 
@@ -100,6 +106,38 @@ func rssHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Fprint(w, string(res))
+}
+
+func getItemsFromDatabase(feeds []string) []ItemObject {
+	db := getDatabase()
+	query := "select item from news where ("
+	for i, feed := range feeds {
+		query += "source='" + feed + "'"
+		if i != len(feeds)-1 {
+			query += " or "
+		} else {
+			query += ") "
+		}
+	}
+	query += " and time > " + strconv.FormatInt(time.Now().Unix()-timeDiff, 10)
+	rows, err := db.Query(query)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer rows.Close()
+
+	var items []ItemObject
+	for rows.Next() {
+		var jsonBlob []byte
+		rows.Scan(&jsonBlob)
+		var item ItemObject
+		json.Unmarshal(jsonBlob, &item)
+		items = append(items, item)
+	}
+	rows.Close()
+
+	return items
 }
 
 func getItems(feeds []string) []ItemObject {
