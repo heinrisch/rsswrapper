@@ -30,7 +30,7 @@ func createDatabaseIfNon(db *sql.DB) {
 
 	if err != nil {
 		fmt.Println("Creating database")
-		_, err = db.Exec("create table news (id integer not null primary key, description unique, source text, time integer, item text)")
+		_, err = db.Exec("create table news (id integer not null primary key, title unique, source text, time integer, item text)")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -62,7 +62,7 @@ func WriteToDatabase() {
 		return
 	}
 
-	stmt, err := tx.Prepare("insert into news(description, source, time, item) values(?, ?, ?, ?)")
+	stmt, err := tx.Prepare("insert into news(title, source, time, item) values(?, ?, ?, ?)")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -70,7 +70,7 @@ func WriteToDatabase() {
 	defer stmt.Close()
 	for _, item := range items {
 		jsonBlob, _ := json.Marshal(item)
-		_, err = stmt.Exec(item.Description, item.Source, item.UnixTime(), jsonBlob)
+		_, err = stmt.Exec(item.Title, item.Source, item.UnixTime(), jsonBlob)
 		if err != nil {
 			fmt.Println(err)
 		}
