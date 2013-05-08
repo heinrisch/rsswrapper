@@ -1,6 +1,7 @@
 package rssw
 
 import (
+	"errors"
 	"net"
 	"net/http"
 	"time"
@@ -30,6 +31,13 @@ func getTimeoutHttpClient(timeout int) *http.Client {
 				}
 				return c, err
 			},
+		},
+
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 100 {
+				return errors.New("stopped after 100 redirects")
+			}
+			return nil
 		},
 	}
 
