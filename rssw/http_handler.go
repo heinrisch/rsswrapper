@@ -241,7 +241,7 @@ func getItems(feeds []string) []ItemObject {
 }
 
 func getFeed(out chan<- []ItemObject, source, feed string, parser DescriptionParser) {
-	resp, err := httpGet(10, feed)
+	resp, err := httpGet(15, feed)
 
 	if err != nil {
 		items := make([]ItemObject, 1)
