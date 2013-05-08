@@ -154,7 +154,7 @@ func getTrendingItemsFromDatabase(feeds []string) []ItemObject {
 		}
 	}
 	query += " and time > " + strconv.FormatInt(time.Now().Unix()-timeDiff, 10)
-	query += " and trend > 5 and trend < 15000"
+	query += " and trend > 5 and trend < 150000"
 	query += " order by trend desc"
 	query += " limit 50"
 
