@@ -66,14 +66,14 @@ func WriteToDatabase() {
 		fmt.Println(err)
 		return
 	}
-	updatestmt, err2 := tx.Prepare("update news set item=(?), trend=(?) where title=(?) and source=(?)")
+	updatestmt, err2 := tx.Prepare("update news set item=?, trend=? where title=? and source=?")
 	if err2 != nil {
 		fmt.Println(err2)
 		return
 	}
 
-	defer updatestmt.Close()
 	defer stmt.Close()
+	defer updatestmt.Close()
 	for _, item := range items {
 		jsonBlob, _ := json.Marshal(item)
 		_, err = stmt.Exec(item.Title, item.Source, item.UnixTime(), item.TwitterStats.Count+item.FacebookStats.Shares, jsonBlob)
