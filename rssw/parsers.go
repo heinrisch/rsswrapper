@@ -124,17 +124,20 @@ func getPage(i *ItemObject) string {
 	return string(body)
 }
 
-func getSimilarityScore(a, b string) int {
+func GetSimilarityScore(a, b string) int {
+	//c := string(b)
 	score := 0
 	data := strings.Split(a, " ")
 	for _, part := range data {
-		if strings.Contains(b, part) {
+		if len(part) > 4 && strings.Contains(b, part) {
 			score++
 			index := strings.Index(b, part) + len(part)
 			b = b[index:]
 		}
 	}
-
+	/*if score > 1 {
+		fmt.Printf("[%s] [%s] = %d\n", a, c, score)
+	}*/
 	return score
 }
 
@@ -148,7 +151,7 @@ func getMostSimilarAltImage(bodyStr string, i *ItemObject) {
 
 	nodes = nodes.Find("img")
 
-	maxScore := 3
+	maxScore := 2
 	image := ""
 	for _, node := range nodes {
 		src, alt, width, _ := Attr(node)
@@ -156,7 +159,7 @@ func getMostSimilarAltImage(bodyStr string, i *ItemObject) {
 			continue
 		}
 
-		score := getSimilarityScore(i.Title, alt)
+		score := GetSimilarityScore(i.Title, alt)
 		if score > maxScore {
 			image = src
 			maxScore = width
@@ -164,7 +167,7 @@ func getMostSimilarAltImage(bodyStr string, i *ItemObject) {
 	}
 
 	if image != "" {
-		fmt.Printf("replacing %s with %s\n", i.ParsedImage, image)
+		//fmt.Printf("replacing %s with %s\n", i.ParsedImage, image)
 		i.ParsedImage = image
 	}
 }

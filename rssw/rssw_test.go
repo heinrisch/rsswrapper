@@ -1,6 +1,9 @@
 package rssw
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestAftonbladetParseFull(t *testing.T) {
 	const in = "<![CDATA[<img src=\"http://gfx.aftonbladet-cdn.se/image/16518937/250/widescreen/49db9ec601a95/Ger+sig+ut+p%C3%A5+ov%C3%A4ntat+djupt+vatten \" /><p>Se när han grundluras av polarna</p>]]>"
@@ -86,4 +89,14 @@ func TestMetaParse2(t *testing.T) {
 	if i.Description != firstOut || i.ParsedImage != secondOut {
 		t.Errorf("\nTestMetaParse2\n(%s)\n = \n(%s,\n%s)\n want \n(%s,\n%s)\n", in, i.Description, i.ParsedImage, firstOut, secondOut)
 	}
+}
+
+func TestSimilarImages(t *testing.T) {
+	const first = "Sveriges Dick Axelsson missar en straff"
+	const second = "Alex Ferguson och David Moyes tillsammans förra året"
+	const title = "David Moyes slutar i Everton"
+	score1 := GetSimilarityScore(title, first)
+	score2 := GetSimilarityScore(title, second)
+
+	fmt.Printf("%d vs %d\n", score1, score2)
 }
