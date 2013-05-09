@@ -32,6 +32,7 @@ func YahooParse(out chan<- int, i *ItemObject) {
 
 	if err != nil {
 		fmt.Println(err)
+		out <- 0
 		return
 	}
 
@@ -39,6 +40,7 @@ func YahooParse(out chan<- int, i *ItemObject) {
 
 	getWidestImage(nodes.Html(), i)
 
+	out <- 0
 }
 
 func removeAllTags(i *ItemObject) {
@@ -104,6 +106,7 @@ func BBCParse(out chan<- int, i *ItemObject) {
 
 	if err != nil {
 		fmt.Println(err)
+		out <- 0
 		return
 	}
 
