@@ -95,7 +95,6 @@ func BBCParse(out chan<- int, i *ItemObject) {
 
 	nodes = nodes.Find("div.story-body")
 
-	before := string(i.ParsedImage)
 	getWidestImage(nodes.Html(), i)
 
 	removeBadImage(i)
