@@ -89,6 +89,22 @@ func SvdParse(out chan<- int, i *ItemObject) {
 	out <- 0
 }
 
+func NYTimesParse(out chan<- int, i *ItemObject) {
+	bodyStr := getPage(i)
+
+	getOGImage(bodyStr, i)
+
+	getMostSimilarAltImage(bodyStr, i)
+
+	getImageFromClass(bodyStr, "div#article", i)
+
+	removeBadImage(i)
+
+	removeAllTags(i)
+
+	out <- 0
+}
+
 func BBCParse(out chan<- int, i *ItemObject) {
 	bodyStr := getPage(i)
 
