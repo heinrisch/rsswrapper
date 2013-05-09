@@ -49,9 +49,9 @@ func getOGImage(body string, i *ItemObject) {
 
 	for _, node := range nodes {
 		property, content := MetaAttr(node)
-		if property == "og:image" {
+		if property == "og:image" && isImageGood(content) {
 			i.ParsedImage = content
-			fmt.Printf("Setting og:image %s\n", content)
+			return
 		}
 	}
 }
