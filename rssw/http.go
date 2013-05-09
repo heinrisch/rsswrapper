@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	maxConnections = 10
+	maxConnections = 20
 )
 
 var semaphores chan int

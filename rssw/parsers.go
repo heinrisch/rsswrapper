@@ -122,7 +122,7 @@ func getOGImage(body string, i *ItemObject) {
 }
 
 func getPage(i *ItemObject) string {
-	resp, err := httpGet(15, i.Link)
+	resp, err := httpGet(10, i.Link)
 	if err != nil {
 		fmt.Printf("Connection error: %s\n", err)
 		return ""
@@ -215,15 +215,8 @@ func getWidestImage(bodyStr string, i *ItemObject) {
 func MetaParse(out chan<- int, i *ItemObject) {
 	bodyStr := getPage(i)
 
-	if bodyStr == "" {
-		removeAllTags(i)
-		out <- 0
-		return
-	}
-
 	getOGImage(bodyStr, i)
 
-	//getWidestImage(bodyStr, i)
 	getMostSimilarAltImage(bodyStr, i)
 
 	removeBadImage(i)
@@ -250,7 +243,7 @@ func isImageGood(img string) bool {
 }
 
 func getFacebookStats(out chan<- int, i *ItemObject) {
-	resp, err := httpGet(15, "http://api.facebook.com/restserver.php?method=links.getStats&urls="+i.Link)
+	resp, err := httpGet(5, "http://api.facebook.com/restserver.php?method=links.getStats&urls="+i.Link)
 	if err != nil {
 		fmt.Printf("Connection error: %s\n", err)
 		out <- 0
@@ -268,7 +261,7 @@ func getFacebookStats(out chan<- int, i *ItemObject) {
 }
 
 func getTwitterStats(out chan<- int, i *ItemObject) {
-	resp, err := httpGet(15, "http://urls.api.twitter.com/1/urls/count.json?url="+i.Link)
+	resp, err := httpGet(5, "http://urls.api.twitter.com/1/urls/count.json?url="+i.Link)
 	if err != nil {
 		fmt.Printf("Connection error: %s\n", err)
 		out <- 0
