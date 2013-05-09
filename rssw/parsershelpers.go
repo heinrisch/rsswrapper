@@ -38,11 +38,20 @@ func removeFirstImages(i *ItemObject) bool {
 }
 
 func getOGImage(body string, i *ItemObject) {
-	if i.ParsedImage == "" {
-		var imgRegex = regexp.MustCompile(`<[^>]*og:image[^>]*content=\"([^>]*)\"[^>]*>`)
-		matches := imgRegex.FindStringSubmatch(body)
-		if len(matches) > 1 && isImageGood(matches[1]) {
-			i.ParsedImage = matches[1]
+	nodes, err := goquery.Parse(body)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	nodes = nodes.Find("meta")
+
+	for _, node := range nodes {
+		property, content := MetaAttr(node)
+		if property == "og:image" {
+			i.ParsedImage = content
+			fmt.Printf("Setting og:image %s\n", content)
 		}
 	}
 }

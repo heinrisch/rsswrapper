@@ -80,6 +80,20 @@ func Attr(n *goquery.Node) (string, string, int, int) {
 	return src, alt, width, height
 }
 
+func MetaAttr(n *goquery.Node) (string, string) {
+	var property, content string
+	for _, attr := range n.Attr {
+		if attr.Key == "property" {
+			property = attr.Val
+		}
+		if attr.Key == "content" {
+			content = attr.Val
+		}
+	}
+
+	return property, content
+}
+
 type LinkStatResp struct {
 	Object FacebookStatsObject `xml:"link_stat"`
 	All    string              `xml:",innerxml"`
