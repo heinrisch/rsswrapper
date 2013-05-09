@@ -24,7 +24,21 @@ func YahooParse(out chan<- int, i *ItemObject) {
 	removeFirstImages(i)
 	removeAllTags(i)
 
-	MetaParse(out, i)
+	bodyStr := getPage(i)
+
+	getMostSimilarAltImage(bodyStr, i)
+
+	nodes, err := goquery.Parse(bodyStr)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	nodes = nodes.Find("yom-art-lead-img")
+
+	getWidestImage(nodes.Html(), i)
+
 }
 
 func removeAllTags(i *ItemObject) {
