@@ -66,6 +66,8 @@ func SvdParse(out chan<- int, i *ItemObject) {
 
 	getOGImage(bodyStr, i)
 
+	getMostSimilarAltImage(bodyStr, i)
+
 	removeBadImage(i)
 
 	removeAllTags(i)
@@ -122,6 +124,51 @@ func getPage(i *ItemObject) string {
 	return string(body)
 }
 
+func getSimilarityScore(a, b string) int {
+	score := 0
+	data := strings.Split(a, " ")
+	for _, part := range data {
+		if strings.Contains(b, part) {
+			score++
+			index := strings.Index(b, part) + len(part)
+			b = b[index:]
+		}
+	}
+
+	return score
+}
+
+func getMostSimilarAltImage(bodyStr string, i *ItemObject) {
+	nodes, err := goquery.Parse(bodyStr)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	nodes = nodes.Find("img")
+
+	maxScore := 3
+	image := ""
+	for _, node := range nodes {
+		src, alt, width, _ := Attr(node)
+		if !strings.HasPrefix(src, "http") {
+			continue
+		}
+
+		score := getSimilarityScore(i.Title, alt)
+		if score > maxScore {
+			image = src
+			maxScore = width
+		}
+	}
+
+	if image != "" {
+		fmt.Printf("replacing %s with %s\n", i.ParsedImage, image)
+		i.ParsedImage = image
+	}
+}
+
 func getWidestImage(bodyStr string, i *ItemObject) {
 	nodes, err := goquery.Parse(bodyStr)
 
@@ -141,12 +188,12 @@ func getWidestImage(bodyStr string, i *ItemObject) {
 			continue
 		}
 
-		if width > maxWidth {
+		if width > maxWidth && isImageGood(src) {
 			image = src
 			maxWidth = width
 		}
 
-		if image == "" && len(alt) > maxAlt && width != 1 {
+		if image == "" && len(alt) > maxAlt && width != 1 && isImageGood(src) {
 			image = src
 			maxAlt = len(alt)
 		}
@@ -168,7 +215,8 @@ func MetaParse(out chan<- int, i *ItemObject) {
 
 	getOGImage(bodyStr, i)
 
-	getWidestImage(bodyStr, i)
+	//getWidestImage(bodyStr, i)
+	getMostSimilarAltImage(bodyStr, i)
 
 	removeBadImage(i)
 
@@ -184,7 +232,7 @@ func removeBadImage(i *ItemObject) {
 }
 
 func isImageGood(img string) bool {
-	badWords := [...]string{"template", "dnse-logo", "default.", "t_logo", "logo2login", "nprlogo", "ybang", "wasp", "ab66ddd94f78"}
+	badWords := [...]string{"template", "dnse-logo", "default.", "t_logo", "logo2login", "nprlogo", "ybang", "wasp", "ab66ddd94f78", "svdse_sidhuvud"}
 	for _, word := range badWords {
 		if strings.Contains(img, word) {
 			return false
