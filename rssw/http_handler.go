@@ -190,7 +190,7 @@ func getItems(feeds []string) []ItemObject {
 			go getFeed(channel, feed, "http://www.dn.se/nyheter/m/rss/", MetaParse)
 			break
 		case "svd":
-			go getFeed(channel, feed, "http://www.svd.se/?service=rss", MetaParse)
+			go getFeed(channel, feed, "http://www.svd.se/?service=rss", SvdParse)
 			break
 		case "di":
 			go getFeed(channel, feed, "http://www.di.se/rss", MetaParse)

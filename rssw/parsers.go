@@ -55,6 +55,24 @@ func RedditParse(out chan<- int, i *ItemObject) {
 	out <- 0
 }
 
+func SvdParse(out chan<- int, i *ItemObject) {
+	bodyStr := getPage(i)
+
+	if bodyStr == "" {
+		removeAllTags(i)
+		out <- 0
+		return
+	}
+
+	getOGImage(bodyStr, i)
+
+	removeBadImage(i)
+
+	removeAllTags(i)
+
+	out <- 0
+}
+
 func ReutersParse(out chan<- int, i *ItemObject) {
 	var tagRegex = regexp.MustCompile(`<div class=\"feedflare\">([^>]+)</div>`)
 	i.Description = tagRegex.ReplaceAllString(i.Description, " ")
@@ -85,33 +103,31 @@ func getOGImage(body string, i *ItemObject) {
 	if i.ParsedImage == "" {
 		var imgRegex = regexp.MustCompile(`<[^>]*og:image[^>]*content=\"([^>]*)\"[^>]*>`)
 		matches := imgRegex.FindStringSubmatch(body)
-		if len(matches) > 1 {
+		if len(matches) > 1 && isImageGood(matches[1]) {
 			i.ParsedImage = matches[1]
 		}
 	}
 }
 
-func MetaParse(out chan<- int, i *ItemObject) {
+func getPage(i *ItemObject) string {
 	resp, err := httpGet(15, i.Link)
 	if err != nil {
 		fmt.Printf("Connection error: %s\n", err)
-		removeAllTags(i)
-		out <- 0
-		return
+		return ""
 	}
 
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	bodyStr := string(body)
+	return string(body)
+}
 
-	getOGImage(bodyStr, i)
-	//getWidestImage(bodyStr, i)
-
+func getWidestImage(bodyStr string, i *ItemObject) {
 	nodes, err := goquery.Parse(bodyStr)
 
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
 	nodes = nodes.Find("img")
@@ -139,22 +155,42 @@ func MetaParse(out chan<- int, i *ItemObject) {
 	if image != "" {
 		i.ParsedImage = image
 	}
+}
 
-	if strings.Contains(i.ParsedImage, "template") ||
-		strings.Contains(i.ParsedImage, "dnse-logo") ||
-		strings.Contains(i.ParsedImage, "default.") ||
-		strings.Contains(i.ParsedImage, "t_logo") ||
-		strings.Contains(i.ParsedImage, "logo2login") ||
-		strings.Contains(i.ParsedImage, "nprlogo") ||
-		strings.Contains(i.ParsedImage, "ybang") ||
-		strings.Contains(i.ParsedImage, "wasp") ||
-		strings.Contains(i.ParsedImage, "ab66ddd94f78") { //Breaking news image
-		i.ParsedImage = ""
+func MetaParse(out chan<- int, i *ItemObject) {
+	bodyStr := getPage(i)
+
+	if bodyStr == "" {
+		removeAllTags(i)
+		out <- 0
+		return
 	}
+
+	getOGImage(bodyStr, i)
+
+	getWidestImage(bodyStr, i)
+
+	removeBadImage(i)
 
 	removeAllTags(i)
 
 	out <- 0
+}
+
+func removeBadImage(i *ItemObject) {
+	if !isImageGood(i.ParsedImage) {
+		i.ParsedImage = ""
+	}
+}
+
+func isImageGood(img string) bool {
+	badWords := [...]string{"template", "dnse-logo", "default.", "t_logo", "logo2login", "nprlogo", "ybang", "wasp", "ab66ddd94f78"}
+	for _, word := range badWords {
+		if strings.Contains(img, word) {
+			return false
+		}
+	}
+	return true
 }
 
 func getFacebookStats(out chan<- int, i *ItemObject) {
