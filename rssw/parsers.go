@@ -75,6 +75,35 @@ func SvdParse(out chan<- int, i *ItemObject) {
 	out <- 0
 }
 
+func BBCParse(out chan<- int, i *ItemObject) {
+	bodyStr := getPage(i)
+
+	if bodyStr == "" {
+		removeAllTags(i)
+		out <- 0
+		return
+	}
+
+	getOGImage(bodyStr, i)
+
+	nodes, err := goquery.Parse(bodyStr)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	nodes = nodes.Find("div.story-body")
+
+	before := string(i.ParsedImage)
+	getWidestImage(nodes.Html(), i)
+
+	removeBadImage(i)
+
+	removeAllTags(i)
+
+	out <- 0
+}
 func ReutersParse(out chan<- int, i *ItemObject) {
 	var tagRegex = regexp.MustCompile(`<div class=\"feedflare\">([^>]+)</div>`)
 	i.Description = tagRegex.ReplaceAllString(i.Description, " ")
@@ -125,7 +154,6 @@ func getPage(i *ItemObject) string {
 }
 
 func GetSimilarityScore(a, b string) int {
-	//c := string(b)
 	score := 0
 	data := strings.Split(a, " ")
 	for _, part := range data {
@@ -135,9 +163,6 @@ func GetSimilarityScore(a, b string) int {
 			b = b[index:]
 		}
 	}
-	/*if score > 1 {
-		fmt.Printf("[%s] [%s] = %d\n", a, c, score)
-	}*/
 	return score
 }
 
@@ -167,7 +192,6 @@ func getMostSimilarAltImage(bodyStr string, i *ItemObject) {
 	}
 
 	if image != "" {
-		//fmt.Printf("replacing %s with %s\n", i.ParsedImage, image)
 		i.ParsedImage = image
 	}
 }
