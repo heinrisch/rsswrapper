@@ -202,7 +202,7 @@ func getItems(feeds []string) []ItemObject {
 			go getFeed(channel, feed, "http://www.reddit.com/r/gifs/.rss", RedditParse)
 			break
 		case "cnn":
-			go getFeed(channel, feed, "http://rss.cnn.com/rss/edition.rss", MetaParse)
+			go getFeed(channel, feed, "http://rss.cnn.com/rss/edition.rss", CNNParse)
 			break
 		case "bbc":
 			go getFeed(channel, feed, "http://feeds.bbci.co.uk/news/rss.xml", BBCParse)
