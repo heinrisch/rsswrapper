@@ -20,25 +20,29 @@ func AftonbladetParse(out chan<- int, i *ItemObject) {
 	out <- 0
 }
 
+func getImageFromClass(body, class string, i *ItemObject) {
+	nodes, err := goquery.Parse(body)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	nodes = nodes.Find(class)
+	getWidestImage(nodes.Html(), i)
+}
+
 func YahooParse(out chan<- int, i *ItemObject) {
 	removeFirstImages(i)
 	removeAllTags(i)
 
 	bodyStr := getPage(i)
 
+	getOGImage(bodyStr, i)
+
 	getMostSimilarAltImage(bodyStr, i)
 
-	nodes, err := goquery.Parse(bodyStr)
-
-	if err != nil {
-		fmt.Println(err)
-		out <- 0
-		return
-	}
-
-	nodes = nodes.Find("yom-art-lead-img")
-
-	getWidestImage(nodes.Html(), i)
+	getImageFromClass(bodyStr, "div.yom-art-lead-img", i)
 
 	out <- 0
 }
@@ -74,12 +78,6 @@ func RedditParse(out chan<- int, i *ItemObject) {
 func SvdParse(out chan<- int, i *ItemObject) {
 	bodyStr := getPage(i)
 
-	if bodyStr == "" {
-		removeAllTags(i)
-		out <- 0
-		return
-	}
-
 	getOGImage(bodyStr, i)
 
 	getMostSimilarAltImage(bodyStr, i)
@@ -94,25 +92,9 @@ func SvdParse(out chan<- int, i *ItemObject) {
 func BBCParse(out chan<- int, i *ItemObject) {
 	bodyStr := getPage(i)
 
-	if bodyStr == "" {
-		removeAllTags(i)
-		out <- 0
-		return
-	}
-
 	getOGImage(bodyStr, i)
 
-	nodes, err := goquery.Parse(bodyStr)
-
-	if err != nil {
-		fmt.Println(err)
-		out <- 0
-		return
-	}
-
-	nodes = nodes.Find("div.story-body")
-
-	getWidestImage(nodes.Html(), i)
+	getImageFromClass(bodyStr, "div.story-body", i)
 
 	removeBadImage(i)
 
@@ -127,23 +109,6 @@ func ReutersParse(out chan<- int, i *ItemObject) {
 
 	i.Description = strings.Trim(i.Description, "\n ")
 	MetaParse(out, i)
-}
-
-func isSimilarButNotEqual(a, b string) bool {
-	if a == b {
-		return false
-	}
-
-	match := float64(0)
-	for i := 0; i < len(b) && i < len(a); i++ {
-		if b[i] == a[i] {
-			match++
-		} else {
-			break
-		}
-	}
-	count := float64(len(b))
-	return float64(match/count) > float64(0.75)
 }
 
 func getOGImage(body string, i *ItemObject) {
