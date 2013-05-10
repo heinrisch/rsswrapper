@@ -154,7 +154,7 @@ func removeBadImage(i *ItemObject) {
 }
 
 func isImageGood(img string) bool {
-	badWords := [...]string{"template", "dnse-logo", "default.", "t_logo", "logo2login", "nprlogo", "ybang", "wasp", "ab66ddd94f78", "svdse_sidhuvud"}
+	badWords := [...]string{"template", "dnse-logo", "default.", "t_logo", "logo2login", "nprlogo", "ybang", "wasp", "ab66ddd94f78", "svdse_sidhuvud", "skryt"}
 	for _, word := range badWords {
 		if strings.Contains(img, word) {
 			return false
