@@ -16,6 +16,23 @@ func AftonbladetParse(out chan<- int, i *ItemObject) {
 	removeFirstImages(i)
 	removeAllTags(i)
 
+	bodyStr := getPage(i)
+
+	getImageFromClass(bodyStr, "div.abArticle", i)
+
+	out <- 0
+}
+
+func ExpressenParse(out chan<- int, i *ItemObject) {
+	removeFirstImages(i)
+	removeAllTags(i)
+
+	bodyStr := getPage(i)
+
+	getOGImage(bodyStr, i)
+
+	getImageFromClass(bodyStr, "div.b-article", i)
+
 	out <- 0
 }
 
